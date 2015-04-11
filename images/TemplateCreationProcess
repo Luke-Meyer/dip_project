@@ -1,0 +1,11 @@
+process for templates - 
+
+	change size of licence plate image to 100 x 50 pixels
+	save
+	for each letter in licence plate...
+		place within 12 x 22 pixel frame
+		save
+		pull into example QtImage program
+		binary threshold at 101
+		create array 
+		go through binary image pixels and create mask 
