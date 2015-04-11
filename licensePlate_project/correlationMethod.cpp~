@@ -73,6 +73,10 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &, int mask[], int num
 
 
 
+
+
+
+
 /*
 orderOutput()
 {
