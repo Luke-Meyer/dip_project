@@ -9,6 +9,7 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image, int mask[], in
     int ncols = image.Width();              //saves the width dimesnions of the image
 	int maskRow = numMaskRows;              //saves the number of mask rows
     int maskCol = numMaskCols;              //saves number of mask columns
+	int maskSize = maskRow * maskCol;       //saves the number of elements in the mask
 	float maskAverage = 0;                  //used to compuete average intensity of mask area
 	float ImgNeighborhoodAvg = 0;           //used to compuete average intensity of image neighboorhood area
 	//Image copyofImage(image);               //creates a copy of the image
