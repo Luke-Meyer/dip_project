@@ -1,6 +1,7 @@
 #include "main.h"
+#include <cmath>
 
-bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &, int mask[], int numMaskRows, int numMaskCols )
+bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image, int mask[], int numMaskRows, int numMaskCols )  
 {
     if ( image.IsNull() ) return false;     //checks if the image is valid
 
@@ -34,6 +35,9 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &, int mask[], int num
 		        }
 		    }
 		    ImgNeighborhoodAvg /= mask.Size(); //divides the average by the number of mask elements (since mask size = neighborhood size)
+ 
+                    float numeratorSum = 0.0;
+                    float denominatorSum = 0.0;
 		    
 		    
 		    /*---loops through each mask and apply the correlation algorithm---*/
@@ -42,10 +46,11 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &, int mask[], int num
 				for ( int y = 0; c < mask.Size(); y++ )
 				{
 					//compute numerator
-					float numeratorSum += ((mask(x,y) - maskAverage) * (image(r+x,c+y) - ImgNeighborhoodAvg));  
+					numeratorSum += ((mask[x] - maskAverage) * (image[r+x][c+y] - ImgNeighborhoodAvg));  
 					
 					//compute denominator
-					float denominatorSum += sqrt((mask(x,y) - maskAverage)^2 * (image(r+x,c+y) - ImgNeighborhoodAvg)^2);
+					denominatorSum += sqrt( ( (mask[x] - maskAverage) * ( mask[x] - maskAverage ) )
+                                                          * ( (image[r+x] [c+y] - ImgNeighborhoodAvg) * ( image[r+x][c+y] - ImgNeighborhoodAvg ) ) );
 					
 					//check for divide by 0 error
 					if (denominatorSum == 0)
