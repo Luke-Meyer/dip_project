@@ -28,7 +28,7 @@ class MyApp : public QObject
         int cols;
         bool match;
         char value;
-        int matchedColPos;
+        int matchedColPos[7];
     };
 
     void init_mask22x12_templates();

@@ -9,7 +9,8 @@ void MyApp::init_mask22x12_templates()
     num0.cols = 12;
     num0.match = false;
     num0.value = '0';
-    num0.mask =    { 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
+    num0.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    num0.mask =     { 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0,
                       0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 
                       0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
                       0, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 
@@ -39,7 +40,8 @@ void MyApp::init_mask22x12_templates()
     num1.cols = 12;
     num1.match = false;
     num1.value = '1';
-    num1.mask =   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    num1.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    num1.mask =    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
                      0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 
                      0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 0, 
@@ -68,7 +70,8 @@ void MyApp::init_mask22x12_templates()
     num2.cols = 12;
     num2.match = false;
     num2.value = '2';
-    num2.mask =   { 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0,
+    num2.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    num2.mask =    { 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0,
                      0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 
                      0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 0, 0, 
                      0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
@@ -97,7 +100,8 @@ void MyApp::init_mask22x12_templates()
     num3.cols = 12;
     num3.match = false;
     num3.value = '3';
-    num3.mask =   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    num3.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    num3.mask =    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 
                      0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 
                      0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
@@ -126,6 +130,7 @@ void MyApp::init_mask22x12_templates()
     num4.cols = 12;
     num4.match = false;
     num4.value = '4';
+    num4.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
     num4.mask =  */
     
     /*---Values for '5'---*/
@@ -134,7 +139,8 @@ void MyApp::init_mask22x12_templates()
     num5.cols = 12;
     num5.match = false;
     num5.value = '5';
-    num5.mask =   { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
+    num5.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    num5.mask =    { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0,
                      0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
                      0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
                      0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -163,7 +169,8 @@ void MyApp::init_mask22x12_templates()
     num6.cols = 12;
     num6.match = false;
     num6.value = '6';
-    num6.mask =   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    num6.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    num6.mask =    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 
                      0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 
                      0, 0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 
@@ -192,6 +199,7 @@ void MyApp::init_mask22x12_templates()
     num7.cols = 12;
     num7.match = false;
     num7.value = '7';
+    num7.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
     num7.mask = */ 
 
     /*---Values for '8'---*/
@@ -200,7 +208,8 @@ void MyApp::init_mask22x12_templates()
     num8.cols = 12;
     num8.match = false;
     num8.value = '8';
-    num8.mask =   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    num8.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    num8.mask =    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                      0, 0, 0, 0, 1, 1, 1, 1, 1, 0, 0, 0, 
                      0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
                      0, 0, 1, 1, 0, 0, 0, 0, 1, 1, 0, 0, 
@@ -230,7 +239,8 @@ void MyApp::init_mask22x12_templates()
     num9.cols = 12;
     num9.match = false;
     num9.value = '9';
-    num9.mask =   { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    num9.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    num9.mask =    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                      0, 0, 0, 1, 1, 1, 1, 1, 1, 0, 0, 0, 
                      0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
                      0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 
@@ -259,7 +269,8 @@ void MyApp::init_mask22x12_templates()
     letterA.cols = 12;
     letterA.match = false;
     letterA.value = 'A';
-    letterA.mask = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    letterA.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    letterA.mask =  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                       0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 
                       0, 0, 0, 0, 1, 1, 1, 0, 0, 0, 0, 0, 
                       0, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 
@@ -284,11 +295,12 @@ void MyApp::init_mask22x12_templates()
 
     /*---Values for 'E'---*/  
     struct mask22x12 letterE;
-    letterA.rows = 22;
-    letterA.cols = 12;
-    letterA.match = false;
-    letterA.value = 'E';
-    letterA.mask = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    letterE.rows = 22;
+    letterE.cols = 12;
+    letterE.match = false;
+    letterE.value = 'E';
+    letterE.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    letterE.mask =  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                       0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 
                       0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 
                       0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
@@ -313,19 +325,42 @@ void MyApp::init_mask22x12_templates()
     
     /*---Values for 'G'---*/
     struct mask22x12 letterG;
-    letterA.rows = 22;
-    letterA.cols = 12;
-    letterA.match = false;
-    letterA.value = 'G';
-    letterA.mask = 
+    letterG.rows = 22;
+    letterG.cols = 12;
+    letterG.match = false;
+    letterG.value = 'G';
+    letterG.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    letterG.mask = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                     0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
+                     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 
+                     0, 1, 1, 1, 0, 0, 0, 0, 1, 1, 1, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 
+                     1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 
+                     1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 1, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
+                     1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
+                     0, 1, 1, 1, 0, 0, 0, 1, 1, 1, 1, 0, 
+                     0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 
+                     0, 0, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0 };
 
     /*---Values for 'T'---*/
     struct mask22x12 letterT;
-    letterA.rows = 22;
-    letterA.cols = 12;
-    letterA.match = false;
-    letterA.value = 'T';
-    letterA.mask = { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+    letterT.rows = 22;
+    letterT.cols = 12;
+    letterT.match = false;
+    letterT.value = 'T';
+    letterT.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    letterT.mask =  { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
                       0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 
                       0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 
                       0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
@@ -350,11 +385,12 @@ void MyApp::init_mask22x12_templates()
 
     /*---Values for 'U'---*/
     struct mask22x12 letterU;
-    letterA.rows = 22;
-    letterA.cols = 12;
-    letterA.match = false;
-    letterA.value = 'U';
-    letterA.mask = { 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0,
+    letterU.rows = 22;
+    letterU.cols = 12;
+    letterU.match = false;
+    letterU.value = 'U';
+    letterU.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    letterU.mask =  { 1, 1, 1, 0, 0, 0, 0, 0, 0, 1, 0, 0,
                       1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
                       1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
                       1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 1, 0, 
@@ -379,11 +415,12 @@ void MyApp::init_mask22x12_templates()
 
     /*---Values for 'V'---*/
     struct mask22x12 letterV;
-    letterA.rows = 22;
-    letterA.cols = 12;
-    letterA.match = false;
-    letterA.value = 'V';
-    letterA.mask = { 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
+    letterV.rows = 22;
+    letterV.cols = 12;
+    letterV.match = false;
+    letterV.value = 'V';
+    letterV.matchedColPos = {0, 0, 0, 0, 0, 0, 0};
+    letterV.mask =  { 1, 1, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0,
                       1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 
                       1, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 
                       0, 1, 1, 0, 0, 0, 0, 0, 1, 1, 0, 0, 
@@ -406,7 +443,6 @@ void MyApp::init_mask22x12_templates()
                       0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 
                       0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0 };
 }
-
 
 
 
