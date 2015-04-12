@@ -1,3 +1,4 @@
+
 /*
                ***** example4.h *****
 
@@ -11,8 +12,15 @@ Modifications:
 */
 
 // next two lines are typical
+#ifndef _MAIN_H
+#define _MAIN_H
+
 #pragma once
+#include <iostream>
 #include <qtimagelib.h>
+#include "templates.h"
+
+using namespace std;
 
 // class declaration
 class MyApp : public QObject
@@ -21,17 +29,11 @@ class MyApp : public QObject
 
 
   public:
-    struct mask22x12
-    {
-        int mask[22][12];
-        int rows;
-        int cols;
-        bool match;
-        char value;
-        int matchedColPos[7];
-    };
-
-    void init_mask22x12_templates();
+    void correlationExtraction( Image &image, int plateValues[][7], mask22x12 allMasks[] );
+    void orderPlateValues( int plateValues[][7] );
+    void quickSort( int a[], int first, int last );
+    int  pivot(int a[], int first, int last);
+    void swap(int& a, int& b);
 
   public slots:
 
@@ -51,10 +53,17 @@ class MyApp : public QObject
     bool Menu_Edge_SobelMagnitude( Image & );
     bool Menu_Edge_SobelDirection( Image & );
     
+    bool Menu_Segment_BinaryThreshold( Image & );
+    bool Menu_Segment_IterativeBinaryThreshold( Image & );
+    bool Menu_Segment_LaplacianThreshold( Image & );
+    bool Menu_Segment_IterativeLaplacianThreshold( Image & );
+    bool Menu_Segment_AdaptiveBinaryThreshold( Image & );
+    
     bool Menu_Extraction_CorrelationCoefficient( Image & );
     bool Menu_Extraction_HoughMatching( Image & );
 };
 
+#endif
 
 
 
