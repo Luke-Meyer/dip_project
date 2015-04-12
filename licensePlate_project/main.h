@@ -19,6 +19,20 @@ class MyApp : public QObject
 {
     Q_OBJECT;
 
+
+  public:
+    struct mask22x12
+    {
+        int mask[22][12];
+        int rows;
+        int cols;
+        bool match;
+        char value;
+        int matchedColPos[7];
+    };
+
+    void init_mask22x12_templates();
+
   public slots:
 
     bool Menu_Palette_Negate( Image & );
@@ -37,7 +51,7 @@ class MyApp : public QObject
     bool Menu_Edge_SobelMagnitude( Image & );
     bool Menu_Edge_SobelDirection( Image & );
     
-    bool Menu_Extraction_CorrelationCoefficient( Image &, int mask[], int numMaskRows, int numMaskCols );
+    bool Menu_Extraction_CorrelationCoefficient( Image & );
     bool Menu_Extraction_HoughMatching( Image & );
 };
 
