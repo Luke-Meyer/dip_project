@@ -39,12 +39,12 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 	    int maskSize = maskRow * maskCol;       //saves the number of elements in the mask
 	    float maskAverage = 0;                  //used to compuete average intensity of mask area
 	    float ImgNeighborhoodAvg = 0;           //used to compuete average intensity of image neighboorhood area
-        string CorImgLabel = "Cross Correlated Values: Mask ";
         float numeratorSum = 0.0;
         float denominatorSum = 0.0;
         float denominator1 = 0.0;
         float denominator2 = 0.0;
         float correlation = 0.0;
+        string CorImgLabel = "Mask = "; //sets string for new correlated values image
        
         //copies the current image to write the correlated values to later
         Image XCorImg( image );
@@ -65,7 +65,8 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
         for ( int r = 0; r < (nrows - currentMask.rows); r++ )
 	    {
             for ( int c = 0; c < (ncols - currentMask.cols); c++ )
-            {			
+            {	
+
 		        /*---precompute ImgNeighborhoodAvg which is size of template---*/
 		        for ( int i = 0; i < maskRow; i++ )
 		        {
@@ -102,20 +103,27 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 			        correlation = (numeratorSum/denominatorSum);
 			    }
 			
+                //sets the correlation image with the found correlated values
 			    XCorImg[r][c].SetGray(abs((int)(correlation * 255)));
                 
                 //determines positive match with image and template
-			    if (correlation >= 0.2)
+			    if (correlation >= 0.4)
 			    {
-			        //if list is empty
+                    //draws letter at correlation match
+                    string val(1,currentMask.value);
+                    XCorImg.DrawText(r+22, c, val, Pixel(0,255,255), Image::Horizontal);
+
+                    //save the column position and mask value to the 2D array
+			        //if list is empty 
 			        if ( numDetected == 0 )
 			        {
 			            plateValues[0][numDetected] = c;
 			            plateValues[1][numDetected] = int( currentMask.value );
 			            numDetected += 1;
 			        }   
-			        else
+			        else //save the matches in the array
 			        {
+                        //checks if the template match is within 3 pixels, to eliminate redundant matches
 			            if ( abs( c - plateValues[0][numDetected-1] ) > 3 )
 			            {   
 			                plateValues[0][numDetected] = c;
@@ -124,6 +132,7 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 			            }
 			        }
 			        
+                    //exits the processing of the plate image if 7 characters are already found
 			        /*if ( numDetected >= 7 )
 			            return;*/
 			    }
@@ -137,7 +146,6 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
         //displays the correlation coefficients in a new image for each mask
         CorImgLabel += currentMask.value;
         displayImage(XCorImg, CorImgLabel);
-        CorImgLabel = "Cross Correlated Values: Mask ";
     }                                            
 }
 
