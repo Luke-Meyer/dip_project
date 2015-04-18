@@ -18,6 +18,8 @@ Modifications:
 #pragma once
 #include <iostream>
 #include <qtimagelib.h>
+#include <stdlib.h>
+#include <string.h>
 #include "templates.h"
 
 using namespace std;

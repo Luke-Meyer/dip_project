@@ -15,7 +15,7 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )
     correlationExtraction( image, plateValues, allMasks );
         
 	//order the output according to col position
-	orderPlateValues( plateValues );
+	//orderPlateValues( plateValues );
 	
     //display alpha-numeric sequence
 	//display time taken
@@ -39,7 +39,17 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 	    int maskSize = maskRow * maskCol;       //saves the number of elements in the mask
 	    float maskAverage = 0;                  //used to compuete average intensity of mask area
 	    float ImgNeighborhoodAvg = 0;           //used to compuete average intensity of image neighboorhood area
-        
+        string CorImgLabel = "Cross Correlated Values: Mask ";
+        float numeratorSum = 0.0;
+        float denominatorSum = 0.0;
+        float denominator1 = 0.0;
+        float denominator2 = 0.0;
+        float correlation = 0.0;
+       
+        //copies the current image to write the correlated values to later
+        Image XCorImg( image );
+        XCorImg.Fill(Pixel(0,0,0));
+
 	    /*---compute maskAverage for specific mask used---*/
         for ( int i = 0; i < maskRow; i++ )
         {
@@ -61,15 +71,11 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 		        {
 		            for( int j = 0; j < maskCol; j++ )
 		            {
-		                ImgNeighborhoodAvg += image[maskRow][maskCol]; //sum the intensity values in the neighborhood
+		                ImgNeighborhoodAvg += image[r+i][c+j]; //sum the intensity values in the neighborhood
 		            }
 		        }
 		        ImgNeighborhoodAvg /= maskSize; //divides the average by the number of mask elements (since mask size = neighborhood size)
-     
-                float numeratorSum = 0.0;
-                float denominatorSum = 0.0;
-                float correlation = 0.0;
-
+   
 		        /*---loops through each mask and apply the correlation algorithm---*/
 			    for ( int x = 0; x < currentMask.rows; x++ )
 			    {
@@ -77,12 +83,15 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 				    {
 					    //compute numerator
 					    numeratorSum += ((currentMask.mask[x][y] - maskAverage) * (image[r+x][c+y] - ImgNeighborhoodAvg));
-					
-					    //compute denominator
-					    denominatorSum += sqrt( ( (currentMask.mask[x][y] - maskAverage) * ( currentMask.mask[x][y] - maskAverage ) )
-                                                              * ( (image[r+x] [c+y] - ImgNeighborhoodAvg) * ( image[r+x][c+y] - ImgNeighborhoodAvg ) ) );
+			
+                        //computes each section of the denominator seperately
+                        denominator1 += ((currentMask.mask[x][y] - maskAverage) * ( currentMask.mask[x][y] - maskAverage ));
+                        denominator2 += ((image[r+x][c+y] - ImgNeighborhoodAvg) * ( image[r+x][c+y] - ImgNeighborhoodAvg ));
 					}
 		        }
+                //compute denominator
+                denominatorSum = sqrt(denominator1 * denominator2); 
+                                                
 			    //check for divide by 0 error
 			    if (denominatorSum == 0.0)
 			    {
@@ -93,11 +102,11 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 			        correlation = (numeratorSum/denominatorSum);
 			    }
 			
-			    //determines positive match with image and template
-			    if (correlation >= 0.8)
+			    XCorImg[r][c].SetGray(abs((int)(correlation * 255)));
+                
+                //determines positive match with image and template
+			    if (correlation >= 0.2)
 			    {
-			        cout << "Correlation: " << correlation << "\t\t||\tMask Value: " << currentMask.value << "\t||\tColumn Position: " << c << "\t||\tRow Position: " << r << endl;
-			        
 			        //if list is empty
 			        if ( numDetected == 0 )
 			        {
@@ -118,8 +127,17 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 			        /*if ( numDetected >= 7 )
 			            return;*/
 			    }
+                numeratorSum = 0.0;
+                denominatorSum = 0.0;
+                denominator1 = 0.0;
+                denominator2 = 0.0;
+                correlation = 0.0;
 		    }
 		}
+        //displays the correlation coefficients in a new image for each mask
+        CorImgLabel += currentMask.value;
+        displayImage(XCorImg, CorImgLabel);
+        CorImgLabel = "Cross Correlated Values: Mask ";
     }                                            
 }
 
@@ -163,7 +181,7 @@ void MyApp::swap(int& a, int& b)
 
 void MyApp::orderPlateValues( int plateValues[][7] )
 {
-    char license [7] = {'&'};
+    char license[7] = {'&'};
     int positions[7] = { plateValues[0][0], plateValues[0][1], plateValues[0][2], plateValues[0][3], 
                          plateValues[0][4], plateValues[0][5], plateValues[0][6] };
                          
@@ -174,18 +192,13 @@ void MyApp::orderPlateValues( int plateValues[][7] )
         for ( int j = 0; j < 7; j++ )
         {
             if ( plateValues[0][j] == positions[i] )
-                license[i] = char ( plateValues[1][j] );
+                license[i] = ( plateValues[1][j] ) + '0';
         }
 	}
 	
-	//for ( int p = 0; p < 7; p++ )
-	//{
-	//    if( license[p] != '&' )
-	//        cout
-	//}
 	for ( int p = 0; p < 7; p++ )
 	{
-	    cout << license[p] << " ";
+	    cout << license[p] << ",";
     }
     cout << endl;
 }
