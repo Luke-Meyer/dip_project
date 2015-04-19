@@ -19,7 +19,6 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )
 	
     //display alpha-numeric sequence
 	//display time taken
-	//display values of correlation coefficient
 	return true;
 }
 
@@ -149,52 +148,15 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
     }                                            
 }
 
-void MyApp::quickSort( int a[], int first, int last )
-{
-    int pivotElement;
- 
-    if(first < last)
-    {
-        pivotElement = pivot(a, first, last);
-        quickSort(a, first, pivotElement-1);
-        quickSort(a, pivotElement+1, last);
-    }
-}
-int MyApp::pivot(int a[], int first, int last)
-{
-    int  p = first;
-    int pivotElement = a[first];
- 
-    for(int i = first+1 ; i <= last ; i++)
-    {
-        if(a[i] <= pivotElement)
-        {
-            p++;
-            swap(a[i], a[p]);
-        }
-    }
- 
-    swap(a[p], a[first]);
- 
-    return p;
-}
- 
-void MyApp::swap(int& a, int& b)
-{
-    int temp = a;
-    a = b;
-    b = temp;
-}
- 
-
 void MyApp::orderPlateValues( int plateValues[][7] )
 {
     char license[7] = {'&'};
     int positions[7] = { plateValues[0][0], plateValues[0][1], plateValues[0][2], plateValues[0][3], 
                          plateValues[0][4], plateValues[0][5], plateValues[0][6] };
                          
-    quickSort( positions, 0, 6 );
-       
+    qsort( positions, 7, sizeof(int), compare );
+    
+    //sort the 2D array of values and column positions
     for ( int i = 0; i < 7; i++ )
     {
         for ( int j = 0; j < 7; j++ )
@@ -204,9 +166,16 @@ void MyApp::orderPlateValues( int plateValues[][7] )
         }
 	}
 	
+    //print the characters in the array
 	for ( int p = 0; p < 7; p++ )
 	{
 	    cout << license[p] << ",";
     }
     cout << endl;
 }
+
+int MyApp::compare( const void *a, const void *b )
+{
+      return ( *(int*)a - *(int*)b );
+}
+

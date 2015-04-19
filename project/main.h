@@ -33,12 +33,9 @@ class MyApp : public QObject
   public:
     void correlationExtraction( Image &image, int plateValues[][7], mask22x12 allMasks[] );
     void orderPlateValues( int plateValues[][7] );
-    void quickSort( int a[], int first, int last );
-    int  pivot(int a[], int first, int last);
-    void swap(int& a, int& b);
+    int compare( const void *a, const void *b );
 
   public slots:
-
     bool Menu_Palette_Negate( Image & );
     bool Menu_Palette_Grayscale( Image & );
     bool Menu_Palette_Brightness( Image & );
