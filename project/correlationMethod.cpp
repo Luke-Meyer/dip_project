@@ -48,8 +48,6 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
         //sets string for new correlated values image
         CorImgLabel = "Mask = "; 
        
-        //cout << "Trying Mask: " << maskValue[ML] << endl;
-
         /*---Read in a template from file---*/
         string name = "../images/" + maskValue[ML] + ".JPG";
         //string name = maskValue[ML] + ".JPG";
@@ -60,8 +58,10 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
             continue;   //go to next template if image is invalid
         }   
 
+        //Prints to the cosole what mask is being processed
         cout << "Running Mask: " << maskValue[ML] << endl;
 
+        //gets current mask values
         maskRow = mask.Height();
         maskCol = mask.Width();
         maskSize = (maskRow * maskCol);
@@ -179,7 +179,10 @@ void MyApp::orderPlateValues( char plateValues[], int plateCols[] )
                          
     //sort the array of values and column positions                         
     sort( positions, positions + 7 );
-    cout << positions[0] << ' ' << positions[1] << ' '<< positions[2] << ' '<< positions[3] << ' '<< positions[4] << ' '<< positions[5] << ' '<< positions[6] << endl;
+
+    //DEBUG
+    cout <<"Column Positions: "<< positions[0] <<' '<< positions[1] <<' '<< positions[2] <<' '<< positions[3] <<' '<< positions[4] <<' '<< positions[5] <<' '<< positions[6] << endl;
+
     //Determine order of characters in license plate
     for ( int i = 0; i < 7; i++ )
     {
@@ -189,13 +192,15 @@ void MyApp::orderPlateValues( char plateValues[], int plateCols[] )
                 license[i] = plateValues[j];
         }
 	}
-	
-    cout << plateValues[0] << plateValues[1] << plateValues[2] << plateValues[3] << plateValues[4] << plateValues[5] << plateValues[6] << endl;
+
+    //DEBUG	
+    cout << "Plate Values:           " << plateValues[0] << plateValues[1] << plateValues[2] << plateValues[3] << plateValues[4] << plateValues[5] << plateValues[6] << endl;
+    cout << "Plate Values (ordered): ";
     
     //print the characters in the array
 	for ( int p = 0; p < 7; p++ )
 	{
-	    cout << license[p] << " ";
+	    cout << license[p];
     }
     cout << endl;
 }
