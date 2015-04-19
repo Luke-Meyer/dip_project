@@ -1,4 +1,5 @@
 #include "main.h"
+#include <cmath>
 
 bool MyApp::Menu_Extraction_HoughMatching( Image & )
 {
