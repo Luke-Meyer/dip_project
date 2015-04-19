@@ -47,7 +47,7 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
         //sets string for new correlated values image
         CorImgLabel = "Mask = "; 
        
-        cout << "Trying Mask: " << maskValue[ML] << endl;
+        //cout << "Trying Mask: " << maskValue[ML] << endl;
 
         /*---Read in a template from file---*/
         //string name = "../images/" + maskValue[ML] + ".JPG";
@@ -84,6 +84,7 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
 	    {
             for ( int c = 0; c < (ncols - maskCol); c++ )
             {	
+                //printf ( "Working on row %d and on column %d.\n", r, c);
 		        //---precompute ImgNeighborhoodAvg which is size of template---
 		        for ( int i = 0; i < maskRow; i++ )
 		        {
@@ -118,6 +119,7 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
 			    else //calculates correlation
 			    {
 			        correlation = (numeratorSum/denominatorSum);
+			        cout << correlation << endl;
 			    }
                 //sets the correlation image with the found correlated values
 			    XCorImg[r][c].SetGray(abs((int)(correlation * 255)));
@@ -126,7 +128,7 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
 			    if (correlation >= 0.8)
 			    {
                     //draws letter at correlation match
-                    //XCorImg.DrawText(r+22, c, maskValue[ML], Pixel(0,255,255), Image::Horizontal);
+                    XCorImg.DrawText(r+22, c, maskValue[ML], Pixel(0,255,255), Image::Horizontal);
 
                     //save the column position and mask value to the 2D array
 			        //if list is empty 
