@@ -46,15 +46,20 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
     {
         //sets string for new correlated values image
         CorImgLabel = "Mask = "; 
-        
+       
+        cout << "Trying Mask: " << maskValue[ML] << endl;
+
         /*---Read in a template from file---*/
-        string name = "../images/" + maskValue[ML] + ".JPG";
+        //string name = "../images/" + maskValue[ML] + ".JPG";
+        string name = maskValue[ML] + ".JPG";
         Image mask( name );
         //checks if the image is valid
         if ( mask.IsNull() )
         {
-            break;   //go to next template if image is invalid
-        }     
+            continue;   //go to next template if image is invalid
+        }   
+
+        cout << "Running Mask: " << maskValue[ML] << endl;
 
         maskRow = mask.Height();
         maskCol = mask.Width();
@@ -74,13 +79,12 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
         }
         maskAverage /= maskSize; //average the sum by dividing the num elements in mask
 	
-	
-	    /*---loops through image and applies correlation algorithm---*/
+	    //---loops through image and applies correlation algorithm---
         for ( int r = 0; r < (nrows - maskRow); r++ )
 	    {
             for ( int c = 0; c < (ncols - maskCol); c++ )
             {	
-		        /*---precompute ImgNeighborhoodAvg which is size of template---*/
+		        //---precompute ImgNeighborhoodAvg which is size of template---
 		        for ( int i = 0; i < maskRow; i++ )
 		        {
 		            for( int j = 0; j < maskCol; j++ )
@@ -90,7 +94,7 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
 		        }
 		        ImgNeighborhoodAvg /= maskSize; //divides the average by the number of mask elements (since mask size = neighborhood size)
    
-		        /*---loops through each mask and apply the correlation algorithm---*/
+		        //---loops through each mask and apply the correlation algorithm---
 			    for ( int x = 0; x < maskRow; x++ )
 			    {
 				    for ( int y = 0; y < maskCol; y++ )
@@ -115,7 +119,6 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
 			    {
 			        correlation = (numeratorSum/denominatorSum);
 			    }
-			
                 //sets the correlation image with the found correlated values
 			    XCorImg[r][c].SetGray(abs((int)(correlation * 255)));
                 
@@ -146,8 +149,8 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
 			        }
 			        
                     //exits the processing of the plate image if 7 characters are already found
-			        /*if ( numDetected >= 7 )
-			            return;*/
+			        //if ( numDetected >= 7 )
+			        //    return;
 			    }
                 //resets the variables for next run through
                 numeratorSum = 0.0;
