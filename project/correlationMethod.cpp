@@ -8,13 +8,14 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )
     if ( image.IsNull() ) return false;     //checks if the image is valid
 
     //initalize an array to keep track of found numbers or letters
-    int plateValues[2][7] = { 0 };
+    int plateCols[7] = { 0 };
+    char plateValues[7] = { ' ' };
     
     //call the extraction algorithm
-    correlationExtraction( image, plateValues );
+    correlationExtraction( image, plateValues, plateCols );
         
 	//order the output according to col position
-	//orderPlateValues( plateValues );
+	orderPlateValues( plateValues, plateCols );
 	
     //display alpha-numeric sequence
 	//display time taken
@@ -22,7 +23,7 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )
 }
 
 
-void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
+void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCols[] )
 {
     int numDetected = 0;
     int nrows = image.Height();             //saves the height dimensions of the image
@@ -50,8 +51,8 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
         //cout << "Trying Mask: " << maskValue[ML] << endl;
 
         /*---Read in a template from file---*/
-        //string name = "../images/" + maskValue[ML] + ".JPG";
-        string name = maskValue[ML] + ".JPG";
+        string name = "../images/" + maskValue[ML] + ".JPG";
+        //string name = maskValue[ML] + ".JPG";
         Image mask( name );
         //checks if the image is valid
         if ( mask.IsNull() )
@@ -84,8 +85,8 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
 	    {
             for ( int c = 0; c < (ncols - maskCol); c++ )
             {	
-                //printf ( "Working on row %d and on column %d.\n", r, c);
 		        //---precompute ImgNeighborhoodAvg which is size of template---
+                //    printf ( "Working on row %d and on column %d.\n", r, c);
 		        for ( int i = 0; i < maskRow; i++ )
 		        {
 		            for( int j = 0; j < maskCol; j++ )
@@ -119,40 +120,39 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
 			    else //calculates correlation
 			    {
 			        correlation = (numeratorSum/denominatorSum);
-			        cout << correlation << endl;
+			        //cout << correlation << endl;
 			    }
                 //sets the correlation image with the found correlated values
 			    XCorImg[r][c].SetGray(abs((int)(correlation * 255)));
                 
                 //determines positive match with image and template
-			    if (correlation >= 0.8)
+			    if (correlation >= 0.7)
 			    {
                     //draws letter at correlation match
-                    XCorImg.DrawText(r+22, c, maskValue[ML], Pixel(0,255,255), Image::Horizontal);
+                    //XCorImg.DrawText(r+maskRow, c, maskValue[ML], Pixel(0,255,255), Image::Horizontal);
 
                     //save the column position and mask value to the 2D array
 			        //if list is empty 
 			        if ( numDetected == 0 )
 			        {
-			            plateValues[0][numDetected] = c;
-                        
-			            plateValues[1][numDetected] = 
-			            numDetected += 1;
+			            plateCols[numDetected] = c;
+			            plateValues[numDetected] = maskValue[ML][0];
+			            numDetected = 1;
 			        }   
 			        else //save the matches in the array
 			        {
                         //checks if the template match is within 3 pixels, to eliminate redundant matches
-			            if ( abs( c - plateValues[0][numDetected-1] ) > 3 )
+			            if ( abs( c - plateCols[numDetected-1] ) > 75 )
 			            {   
-			                plateValues[0][numDetected] = c;
-			                plateValues[1][numDetected] = stoi( maskValue[ML] );
-			                numDetected += 1;
+			                plateCols[numDetected] = c;
+			                plateValues[numDetected] = maskValue[ML][0];
+			                numDetected = numDetected + 1;
 			            }
 			        }
-			        
+ 
                     //exits the processing of the plate image if 7 characters are already found
-			        //if ( numDetected >= 7 )
-			        //    return;
+			        if ( numDetected >= 7 )
+			            return;
 			    }
                 //resets the variables for next run through
                 numeratorSum = 0.0;
@@ -171,30 +171,31 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
     }                                            
 }
 
-void MyApp::orderPlateValues( int plateValues[][7] )
+void MyApp::orderPlateValues( char plateValues[], int plateCols[] )
 {
     char license[7] = {'&'};
-    int positions[7] = { plateValues[0][0], plateValues[0][1], plateValues[0][2], plateValues[0][3], 
-                         plateValues[0][4], plateValues[0][5], plateValues[0][6] };
+    int positions[7] = { plateCols[0], plateCols[1], plateCols[2], plateCols[3], 
+                         plateCols[4], plateCols[5], plateCols[6] };
                          
+    //sort the array of values and column positions                         
     sort( positions, positions + 7 );
-    
-    //sort the 2D array of values and column positions
+    cout << positions[0] << ' ' << positions[1] << ' '<< positions[2] << ' '<< positions[3] << ' '<< positions[4] << ' '<< positions[5] << ' '<< positions[6] << endl;
+    //Determine order of characters in license plate
     for ( int i = 0; i < 7; i++ )
     {
         for ( int j = 0; j < 7; j++ )
         {
-            if ( plateValues[0][j] == positions[i] )
-                license[i] = ( plateValues[1][j] ) + '0';
+            if ( plateCols[j] == positions[i] )
+                license[i] = plateValues[j];
         }
 	}
 	
+    cout << plateValues[0] << plateValues[1] << plateValues[2] << plateValues[3] << plateValues[4] << plateValues[5] << plateValues[6] << endl;
+    
     //print the characters in the array
 	for ( int p = 0; p < 7; p++ )
 	{
-	    cout << license[p] << ",";
+	    cout << license[p] << " ";
     }
     cout << endl;
 }
-
-

@@ -30,8 +30,8 @@ class MyApp : public QObject
 
 
   public:
-    void correlationExtraction( Image &image, int plateValues[][7] );
-    void orderPlateValues( int plateValues[][7] );
+    void correlationExtraction( Image &image, char plateValues[], int plateCols[] );
+    void orderPlateValues( char plateValues[], int plateCols[] );
 
   public slots:
     bool Menu_Palette_Negate( Image & );
