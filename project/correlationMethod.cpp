@@ -1,18 +1,17 @@
 #include "main.h"
 #include <cmath>
+#include <string>
+#include <algorithm>
 
 bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )  
 {
     if ( image.IsNull() ) return false;     //checks if the image is valid
 
-    //initalize a struct of all masks
-    mask22x12 allMasks[] = { num2, letterT, letterA, num5, num3, num8, num0, num2, num6, num9, letterE, letterG, letterU, letterV };
-    
     //initalize an array to keep track of found numbers or letters
     int plateValues[2][7] = { 0 };
     
     //call the extraction algorithm
-    correlationExtraction( image, plateValues, allMasks );
+    correlationExtraction( image, plateValues );
         
 	//order the output according to col position
 	//orderPlateValues( plateValues );
@@ -23,28 +22,44 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )
 }
 
 
-void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12 allMasks[] )
+void MyApp::correlationExtraction( Image &image, int plateValues[][7] )
 {
     int numDetected = 0;
     int nrows = image.Height();             //saves the height dimensions of the image
     int ncols = image.Width();              //saves the width dimesnions of the image
+    float maskAverage = 0.0;                  //used to compuete average intensity of mask area
+    float ImgNeighborhoodAvg = 0.0;           //used to compuete average intensity of image neighboorhood area
+    float numeratorSum = 0.0;
+    float denominatorSum = 0.0;
+    float denominator1 = 0.0;
+    float denominator2 = 0.0;
+    float correlation = 0.0;
+    int maskRow = 0;
+    int maskCol = 0;
+    int maskSize = 0;
+    string CorImgLabel;
+    string maskValue[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", 
+                            "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
     
-    /*---loop through all mask templates (change 14 to 36 when all templates are constructed)---*/
-    for ( int i = 0; i < 14; i++ )
+    /*---loop through all mask templates---*/
+    for ( int ML = 0; ML < 36; ML++)
     {
-        mask22x12 currentMask = allMasks[i];
-	    int maskRow = currentMask.rows ;              //saves the number of mask rows
-        int maskCol = currentMask.cols;              //saves number of mask columns
-	    int maskSize = maskRow * maskCol;       //saves the number of elements in the mask
-	    float maskAverage = 0;                  //used to compuete average intensity of mask area
-	    float ImgNeighborhoodAvg = 0;           //used to compuete average intensity of image neighboorhood area
-        float numeratorSum = 0.0;
-        float denominatorSum = 0.0;
-        float denominator1 = 0.0;
-        float denominator2 = 0.0;
-        float correlation = 0.0;
-        string CorImgLabel = "Mask = "; //sets string for new correlated values image
-       
+        //sets string for new correlated values image
+        CorImgLabel = "Mask = "; 
+        
+        /*---Read in a template from file---*/
+        string name = "../images/" + maskValue[ML] + ".JPG";
+        Image mask( name );
+        //checks if the image is valid
+        if ( mask.IsNull() )
+        {
+            break;   //go to next template if image is invalid
+        }     
+
+        maskRow = mask.Height();
+        maskCol = mask.Width();
+        maskSize = (maskRow * maskCol);
+
         //copies the current image to write the correlated values to later
         Image XCorImg( image );
         XCorImg.Fill(Pixel(0,0,0));
@@ -54,18 +69,17 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
         {
             for( int j = 0; j < maskCol; j++ )
             {
-              maskAverage += currentMask.mask[i][j]; //sum all the values in the mask
+              maskAverage += mask[i][j]; //sum all the values in the mask
             }
         }
         maskAverage /= maskSize; //average the sum by dividing the num elements in mask
 	
 	
 	    /*---loops through image and applies correlation algorithm---*/
-        for ( int r = 0; r < (nrows - currentMask.rows); r++ )
+        for ( int r = 0; r < (nrows - maskRow); r++ )
 	    {
-            for ( int c = 0; c < (ncols - currentMask.cols); c++ )
+            for ( int c = 0; c < (ncols - maskCol); c++ )
             {	
-
 		        /*---precompute ImgNeighborhoodAvg which is size of template---*/
 		        for ( int i = 0; i < maskRow; i++ )
 		        {
@@ -77,15 +91,15 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 		        ImgNeighborhoodAvg /= maskSize; //divides the average by the number of mask elements (since mask size = neighborhood size)
    
 		        /*---loops through each mask and apply the correlation algorithm---*/
-			    for ( int x = 0; x < currentMask.rows; x++ )
+			    for ( int x = 0; x < maskRow; x++ )
 			    {
-				    for ( int y = 0; y < currentMask.cols; y++ )
+				    for ( int y = 0; y < maskCol; y++ )
 				    {
 					    //compute numerator
-					    numeratorSum += ((currentMask.mask[x][y] - maskAverage) * (image[r+x][c+y] - ImgNeighborhoodAvg));
+					    numeratorSum += ((mask[x][y] - maskAverage) * (image[r+x][c+y] - ImgNeighborhoodAvg));
 			
                         //computes each section of the denominator seperately
-                        denominator1 += ((currentMask.mask[x][y] - maskAverage) * ( currentMask.mask[x][y] - maskAverage ));
+                        denominator1 += ((mask[x][y] - maskAverage) * ( mask[x][y] - maskAverage ));
                         denominator2 += ((image[r+x][c+y] - ImgNeighborhoodAvg) * ( image[r+x][c+y] - ImgNeighborhoodAvg ));
 					}
 		        }
@@ -106,18 +120,18 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 			    XCorImg[r][c].SetGray(abs((int)(correlation * 255)));
                 
                 //determines positive match with image and template
-			    if (correlation >= 0.4)
+			    if (correlation >= 0.8)
 			    {
                     //draws letter at correlation match
-                    string val(1,currentMask.value);
-                    XCorImg.DrawText(r+22, c, val, Pixel(0,255,255), Image::Horizontal);
+                    //XCorImg.DrawText(r+22, c, maskValue[ML], Pixel(0,255,255), Image::Horizontal);
 
                     //save the column position and mask value to the 2D array
 			        //if list is empty 
 			        if ( numDetected == 0 )
 			        {
 			            plateValues[0][numDetected] = c;
-			            plateValues[1][numDetected] = int( currentMask.value );
+                        
+			            plateValues[1][numDetected] = 
 			            numDetected += 1;
 			        }   
 			        else //save the matches in the array
@@ -126,7 +140,7 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 			            if ( abs( c - plateValues[0][numDetected-1] ) > 3 )
 			            {   
 			                plateValues[0][numDetected] = c;
-			                plateValues[1][numDetected] = int( currentMask.value );
+			                plateValues[1][numDetected] = stoi( maskValue[ML] );
 			                numDetected += 1;
 			            }
 			        }
@@ -135,16 +149,20 @@ void MyApp::correlationExtraction( Image &image, int plateValues[][7], mask22x12
 			        /*if ( numDetected >= 7 )
 			            return;*/
 			    }
+                //resets the variables for next run through
                 numeratorSum = 0.0;
                 denominatorSum = 0.0;
                 denominator1 = 0.0;
                 denominator2 = 0.0;
                 correlation = 0.0;
+                ImgNeighborhoodAvg = 0;
 		    }
 		}
         //displays the correlation coefficients in a new image for each mask
-        CorImgLabel += currentMask.value;
+        CorImgLabel += maskValue[ML];
         displayImage(XCorImg, CorImgLabel);
+        maskAverage = 0.0;   //reset the mask average
+        maskSize = 0;
     }                                            
 }
 
@@ -154,7 +172,7 @@ void MyApp::orderPlateValues( int plateValues[][7] )
     int positions[7] = { plateValues[0][0], plateValues[0][1], plateValues[0][2], plateValues[0][3], 
                          plateValues[0][4], plateValues[0][5], plateValues[0][6] };
                          
-    qsort( positions, 7, sizeof(int), compare );
+    sort( positions, positions + 7 );
     
     //sort the 2D array of values and column positions
     for ( int i = 0; i < 7; i++ )
@@ -174,8 +192,4 @@ void MyApp::orderPlateValues( int plateValues[][7] )
     cout << endl;
 }
 
-int MyApp::compare( const void *a, const void *b )
-{
-      return ( *(int*)a - *(int*)b );
-}
 

@@ -19,8 +19,7 @@ Modifications:
 #include <iostream>
 #include <qtimagelib.h>
 #include <stdlib.h>
-#include <string.h>
-#include "templates.h"
+#include <string>
 
 using namespace std;
 
@@ -31,9 +30,8 @@ class MyApp : public QObject
 
 
   public:
-    void correlationExtraction( Image &image, int plateValues[][7], mask22x12 allMasks[] );
+    void correlationExtraction( Image &image, int plateValues[][7] );
     void orderPlateValues( int plateValues[][7] );
-    int compare( const void *a, const void *b );
 
   public slots:
     bool Menu_Palette_Negate( Image & );
