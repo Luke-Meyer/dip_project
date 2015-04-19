@@ -2,8 +2,8 @@
 #include <cmath>
 
 bool MyApp::Menu_Extraction_HoughMatching( Image & )
-{
-    /*This algorithm is interpreted from hough.pdf that Weiss posted on the web" */
+{/*
+    //This algorithm is interpreted from hough.pdf that Weiss posted on the web" //
 
     Image mask = Null;  // mask object to hold template image
     int xReference = 0; // x coord of reference point in template
@@ -22,7 +22,7 @@ bool MyApp::Menu_Extraction_HoughMatching( Image & )
 
     float theta = 0.0; // angle between x axis and radius of centroid to boundary
 
-    /*NEED TO READ IN TEMPLATE IMAGE FROM FILE */
+    //NEED TO READ IN TEMPLATE IMAGE FROM FILE //
     //
     //
     
@@ -30,10 +30,10 @@ bool MyApp::Menu_Extraction_HoughMatching( Image & )
     int maskCols = mask.Width();
    
 
-    /* COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN TEMPLATE IMAGE */
+    // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN TEMPLATE IMAGE //
     sobelMagnitude( mask );  
 
-    /*DETERMINE CENTRIOD OF TEMPLATE IMAGE */
+    //DETERMINE CENTRIOD OF TEMPLATE IMAGE //
     for( int x = 0; x < maskRows; x++ ) 
     {
       for( int y = 0; y < maskCols; y++ )
@@ -53,7 +53,7 @@ bool MyApp::Menu_Extraction_HoughMatching( Image & )
     yReference /= count;
 
     
-    /*COMPUTE R-TABLE */
+    //COMPUTE R-TABLE //
     Image maskCopy = mask; // make copy of template image to ensure data intregrity
 
     float radius = 0.0; // radius length from reference point to boundary 
@@ -67,7 +67,7 @@ bool MyApp::Menu_Extraction_HoughMatching( Image & )
       {
         if( maskCopy[x][y] > threshold )
         {
-          /*compute theta ( sobel edge direction ) for current pixel*/
+          //compute theta ( sobel edge direction ) for current pixel//
           //NEED TO DO!!!!!!!!!!!!
           //
 
@@ -88,7 +88,7 @@ bool MyApp::Menu_Extraction_HoughMatching( Image & )
  
     
     
-    /* COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN IMAGE */
+    // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN IMAGE //
 
     Image imageCopy = image; // make copy of image to ensure data integrity
 
@@ -98,7 +98,7 @@ bool MyApp::Menu_Extraction_HoughMatching( Image & )
     int yCoord = 0; // y coordinate to index accumulator array
 
     
-    /* BUILD ACCUMULATOR ARRAY */
+    // BUILD ACCUMULATOR ARRAY //
 
     for( int x = 0; imageRows; x++ )
     {
@@ -106,7 +106,7 @@ bool MyApp::Menu_Extraction_HoughMatching( Image & )
       {
         if( imageCopy[x][y] > threshold )  // if pixel is an edge pixel
         {
-           /*compute theta ( sobel edge direction ) for current pixel*/
+           //compute theta ( sobel edge direction ) for current pixel//
           //NEED TO DO!!!!!!!!!!!!
           //
       
@@ -148,6 +148,7 @@ bool MyApp::Menu_Extraction_HoughMatching( Image & )
 
     // do stuff with row and column position of possible object match
       
-
+*/
     return true;
+
 }
