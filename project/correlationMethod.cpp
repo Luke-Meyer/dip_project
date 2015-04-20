@@ -9,14 +9,23 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient_PersonalizedPlate( Image &ima
     if ( image.IsNull() ) return false;     //checks if the image is valid
 
     //initalize an array to keep track of found numbers or letters
+	double timeElapse = 0;
     int plateCols[7] = { 0 };
     char plateValues[7] = { ' ' };
     
+	//start time
+	clock_t start = clock();
+
     //call the extraction algorithm
     correlationExtraction( image, plateValues, plateCols, 7 );
+
+	//end time
+	clock_t end = clock();
+
+	timeElapse = double(end - start) / CLOCKS_PER_SEC;
         
 	//order the output according to col position
-	orderPlateValues( plateValues, plateCols );
+	orderPlateValues( plateValues, plateCols, timeElapse );
 	
     //display alpha-numeric sequence
 	//display time taken
@@ -35,7 +44,7 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient_StandardPlate( Image &image )
     correlationExtraction( image, plateValues, plateCols, 6 );
         
 	//order the output according to col position
-	orderPlateValues( plateValues, plateCols );
+	orderPlateValues( plateValues, plateCols, timeElapse );
 	
     //display alpha-numeric sequence
 	//display time taken
@@ -204,8 +213,12 @@ for( int MV = 0; MV < 2; MV++)
 }                                           
 }
 
-void MyApp::orderPlateValues( char plateValues[], int plateCols[] )
+void MyApp::orderPlateValues( char plateValues[], int plateCols[], double timeElapse )
 {
+	Image textbox;
+	textbox.SetHeight( 150 );
+	textbox.SetWidth( 200 );
+	string message = "";
     char license[7] = {'&'};
     int positions[7] = { plateCols[0], plateCols[1], plateCols[2], plateCols[3], 
                          plateCols[4], plateCols[5], plateCols[6] };
@@ -226,14 +239,24 @@ void MyApp::orderPlateValues( char plateValues[], int plateCols[] )
         }
 	}
 
-    //DEBUG	
-    cout << "Plate Values:           " << plateValues[0] << plateValues[1] << plateValues[2] << plateValues[3] << plateValues[4] << plateValues[5] << plateValues[6] << endl;
-    cout << "Plate Values (ordered): ";
-    
-    //print the characters in the array
+	message += "Plate Values: ";
 	for ( int p = 0; p < 7; p++ )
 	{
-	    cout << license[p];
-    }
-    cout << endl;
+		message += license[p] + ' ';
+	}
+	message += "\nTime Elapsed: " + timeElapse + "\n";
+
+	textbox.DrawText(10, 50, message, Pixel(255, 255, 255));
+
+
+    ////DEBUG	
+    //cout << "Plate Values:           " << plateValues[0] << plateValues[1] << plateValues[2] << plateValues[3] << plateValues[4] << plateValues[5] << plateValues[6] << endl;
+    //cout << "Plate Values (ordered): ";
+    
+    //print the characters in the array
+	//for ( int p = 0; p < 7; p++ )
+	//{
+	//    cout << license[p];
+    //}
+    //cout << endl;
 }

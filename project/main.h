@@ -20,6 +20,7 @@ Modifications:
 #include <qtimagelib.h>
 #include <stdlib.h>
 #include <string>
+#include <ctime>
 
 using namespace std;
 
@@ -32,7 +33,7 @@ class MyApp : public QObject
   public:
     void correlationExtraction( Image &image, char plateValues[], int plateCols[], int num );
     void houghExtraction( Image &image, char plaveValues[], int plateCols[] );
-    void orderPlateValues( char plateValues[], int plateCols[] );
+    void orderPlateValues( char plateValues[], int plateCols[], double timeElapse );
 
   public slots:
     bool Menu_Palette_Negate( Image & );
