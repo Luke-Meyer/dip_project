@@ -31,6 +31,7 @@ class MyApp : public QObject
 
   public:
     void correlationExtraction( Image &image, char plateValues[], int plateCols[] );
+    void houghExtraction( Image &image, char plaveValues[], int plateCols[] );
     void orderPlateValues( char plateValues[], int plateCols[] );
 
   public slots:
