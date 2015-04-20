@@ -24,7 +24,7 @@ bool MyApp::Menu_Extraction_HoughMatching( Image &image )
 	return true;
 }
 
-void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols )
+void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 {     
     //This algorithm is interpreted from hough.pdf that Weiss posted on the web" //
 
@@ -42,6 +42,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols )
     int imageCols = image.Width();
 
     int accumulatorArray[imageRows][imageCols]; // accumulator array
+    int numDetected = 0;
 
     
     string CorImgLabel;
@@ -55,7 +56,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols )
         Image XCorImg( image );
         XCorImg.Fill( Pixel( 0, 0, 0 ) );
 
-        CorImagLable = "Mask = "; // get name of current mask
+        CorImgLabel = "Mask = "; // get name of current mask
   
         // read in template image from file
         string name = "../image/" + maskValue[ML] + ".JPG";
@@ -106,6 +107,8 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols )
         int maskY[9] = {1, 2, 1, 0, 0, 0, -1, -2, -1};
         int sumX = 0;
         int sumY = 0;
+        int i = 0;  // loop variable to index sobel masks
+
 
 
          //Build R-table
@@ -131,7 +134,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols )
                              ( yReference - y ) * ( yReference - y ) );
    
               //compute orientation of boundary point relative to centroid
-              alpha = atan2( (double) ( yReference - y ) / (double) ( xReference - x ) );
+              alpha = atan2( ( (double)  yReference - y ) , ( (double)  xReference - x ) );
 
               Rtable[0][theta] = radius;  //store radius and orientation in Rtable
               Rtable[1][theta] = alpha;
@@ -139,6 +142,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols )
               sumX = 0; // reinitialize important variables for future calculations
               sumY = 0;
               theta = 0;
+              i = 0;
             }
 
           }
@@ -154,7 +158,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols )
     
         int xCoord = 0; // x coordinate to index accumulator array
         int yCoord = 0; // y coordinate to index accumulator array
-
+        
     
         // BUILD ACCUMULATOR ARRAY //
 
@@ -168,6 +172,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols )
               sumX += maskX[i] * imageCopy[x][y];
               sumY += maskY[i] * imageCopy[x][y];
               theta = atan2( (double) sumY, (double) sumX );
+              i++;
 
               if( theta < 0 )  // convert to positive radians if theta is negative
                 theta = ( theta + 2 * PI );                                  
@@ -183,9 +188,10 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols )
               accumulatorArray[xCoord][yCoord] += 1; // increment accumulator
             }
 
-            sumX = 0;
+            sumX = 0;  // reinitialize important variables for future calculations
             sumY = 0;
             theta = 0;
+            i = 0;
           }
         }
 
