@@ -36,12 +36,22 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient_StandardPlate( Image &image )
 {
     if ( image.IsNull() ) return false;     //checks if the image is valid
 
+	double timeElapse = 0;
+
     //initalize an array to keep track of found numbers or letters
     int plateCols[7] = { 0 };
     char plateValues[7] = { ' ' };
     
+	//start time
+	clock_t start = clock();
+
     //call the extraction algorithm
     correlationExtraction( image, plateValues, plateCols, 6 );
+
+	//end time
+	clock_t end = clock();
+
+	timeElapse = double(end - start) / CLOCKS_PER_SEC;
         
 	//order the output according to col position
 	orderPlateValues( plateValues, plateCols, timeElapse );
@@ -69,7 +79,7 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
     int maskCol = 0;
     int maskSize = 0;
     string CorImgLabel;
-    string maskVersion[] = { "", "-2" };
+    string maskVersion[] = { "templates100", "templates80", "", "-2" };
     string maskValue[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", 
                             "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
     
@@ -83,7 +93,7 @@ for( int MV = 0; MV < 2; MV++)
         CorImgLabel = "Mask = "; 
        
         /*---Read in a template from file---*/
-        string name = "../images/" + maskValue[ML] + maskVersion[MV] + ".JPG";
+        string name = "../images/" + maskVersion[MV] + "/" + maskValue[ML] + maskVersion[MV+2] + ".JPG";
         //string name = maskValue[ML] + ".JPG";
         Image mask( name );
         //checks if the image is valid
@@ -93,7 +103,7 @@ for( int MV = 0; MV < 2; MV++)
         }   
 
         //Prints to the cosole what mask is being processed
-        cout << "Running Mask: " << maskValue[ML] + maskVersion[MV] << endl;
+        cout << "Running Mask: " << maskValue[ML] + maskVersion[MV+2] << endl;
 
         //gets current mask values
         maskRow = mask.Height();
@@ -177,7 +187,7 @@ for( int MV = 0; MV < 2; MV++)
 			        else //save the matches in the array
 			        {
                         //checks if the template match is within 3 pixels, to eliminate redundant matches
-			            if ( plateValues[numDetected-1] != maskValue[ML][0] || abs( c - plateCols[numDetected-1] ) > maskCol )
+			            if ( plateValues[numDetected-1] != maskValue[ML][0] or abs( c - plateCols[numDetected-1] ) > maskCol )
 			            {   
 			                plateCols[numDetected] = c;
 			                plateValues[numDetected] = maskValue[ML][0];
@@ -215,6 +225,8 @@ for( int MV = 0; MV < 2; MV++)
 
 void MyApp::orderPlateValues( char plateValues[], int plateCols[], double timeElapse )
 {
+	ostringstream convertTime;
+	convertTime << timeElapse;
 	Image textbox;
 	textbox.SetHeight( 150 );
 	textbox.SetWidth( 200 );
@@ -244,7 +256,7 @@ void MyApp::orderPlateValues( char plateValues[], int plateCols[], double timeEl
 	{
 		message += license[p] + ' ';
 	}
-	message += "\nTime Elapsed: " + timeElapse + "\n";
+	message += "\nTime Elapsed: " + convertTime.str() + "\n";
 
 	textbox.DrawText(10, 50, message, Pixel(255, 255, 255));
 

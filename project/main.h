@@ -20,6 +20,7 @@ Modifications:
 #include <qtimagelib.h>
 #include <stdlib.h>
 #include <string>
+#include <sstream>
 #include <ctime>
 
 using namespace std;
