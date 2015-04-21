@@ -20,6 +20,8 @@ Modifications:
 #include <qtimagelib.h>
 #include <stdlib.h>
 #include <string>
+#include <sstream>
+#include <ctime>
 
 using namespace std;
 
@@ -30,9 +32,9 @@ class MyApp : public QObject
 
 
   public:
-    void correlationExtraction( Image &image, char plateValues[], int plateCols[] );
+    void correlationExtraction( Image &image, char plateValues[], int plateCols[], int num );
     void houghExtraction( Image &image, char plaveValues[], int plateCols[] );
-    void orderPlateValues( char plateValues[], int plateCols[] );
+    void orderPlateValues( char plateValues[], int plateCols[], double timeElapse );
 
   public slots:
     bool Menu_Palette_Negate( Image & );
@@ -57,7 +59,8 @@ class MyApp : public QObject
     bool Menu_Segment_IterativeLaplacianThreshold( Image & );
     bool Menu_Segment_AdaptiveBinaryThreshold( Image & );
     
-    bool Menu_Extraction_CorrelationCoefficient( Image & );
+    bool Menu_Extraction_CorrelationCoefficient_StandardPlate( Image & );
+    bool Menu_Extraction_CorrelationCoefficient_PersonalizedPlate( Image & );
     bool Menu_Extraction_HoughMatching( Image & );
 };
 

@@ -3,19 +3,58 @@
 #include <string>
 #include <algorithm>
 
-bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )  
+
+bool MyApp::Menu_Extraction_CorrelationCoefficient_PersonalizedPlate( Image &image )
 {
     if ( image.IsNull() ) return false;     //checks if the image is valid
+
+    //initalize an array to keep track of found numbers or letters
+	double timeElapse = 0;
+    int plateCols[7] = { 0 };
+    char plateValues[7] = { ' ' };
+    
+	//start time
+	clock_t start = clock();
+
+    //call the extraction algorithm
+    correlationExtraction( image, plateValues, plateCols, 7 );
+
+	//end time
+	clock_t end = clock();
+
+	timeElapse = double(end - start) / CLOCKS_PER_SEC;
+        
+	//order the output according to col position
+	orderPlateValues( plateValues, plateCols, timeElapse );
+	
+    //display alpha-numeric sequence
+	//display time taken
+	return true;
+}
+
+bool MyApp::Menu_Extraction_CorrelationCoefficient_StandardPlate( Image &image )  
+{
+    if ( image.IsNull() ) return false;     //checks if the image is valid
+
+	double timeElapse = 0;
 
     //initalize an array to keep track of found numbers or letters
     int plateCols[7] = { 0 };
     char plateValues[7] = { ' ' };
     
+	//start time
+	clock_t start = clock();
+
     //call the extraction algorithm
-    correlationExtraction( image, plateValues, plateCols );
+    correlationExtraction( image, plateValues, plateCols, 6 );
+
+	//end time
+	clock_t end = clock();
+
+	timeElapse = double(end - start) / CLOCKS_PER_SEC;
         
 	//order the output according to col position
-	orderPlateValues( plateValues, plateCols );
+	orderPlateValues( plateValues, plateCols, timeElapse );
 	
     //display alpha-numeric sequence
 	//display time taken
@@ -23,8 +62,9 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )
 }
 
 
-void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCols[] )
+void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCols[], int num )
 {
+    bool valFound = false;
     int numDetected = 0;
     int nrows = image.Height();             //saves the height dimensions of the image
     int ncols = image.Width();              //saves the width dimesnions of the image
@@ -39,9 +79,13 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
     int maskCol = 0;
     int maskSize = 0;
     string CorImgLabel;
+    string maskVersion[] = { "templates100", "templates80", "", "-2" };
     string maskValue[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", "Q", "R", 
                             "S", "T", "U", "V", "W", "X", "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
     
+/*---loop through all mask versions---*/
+for( int MV = 0; MV < 2; MV++)
+{
     /*---loop through all mask templates---*/
     for ( int ML = 0; ML < 36; ML++)
     {
@@ -49,7 +93,7 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
         CorImgLabel = "Mask = "; 
        
         /*---Read in a template from file---*/
-        string name = "../images/" + maskValue[ML] + ".JPG";
+        string name = "../images/" + maskVersion[MV] + "/" + maskValue[ML] + maskVersion[MV+2] + ".JPG";
         //string name = maskValue[ML] + ".JPG";
         Image mask( name );
         //checks if the image is valid
@@ -59,7 +103,7 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
         }   
 
         //Prints to the cosole what mask is being processed
-        cout << "Running Mask: " << maskValue[ML] << endl;
+        cout << "Running Mask: " << maskValue[ML] + maskVersion[MV+2] << endl;
 
         //gets current mask values
         maskRow = mask.Height();
@@ -128,6 +172,7 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
                 //determines positive match with image and template
 			    if (correlation >= 0.7)
 			    {
+				    valFound = true;
                     //draws letter at correlation match
                     //XCorImg.DrawText(r+maskRow, c, maskValue[ML], Pixel(0,255,255), Image::Horizontal);
 
@@ -142,17 +187,13 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
 			        else //save the matches in the array
 			        {
                         //checks if the template match is within 3 pixels, to eliminate redundant matches
-			            if ( abs( c - plateCols[numDetected-1] ) > 75 )
+			            if ( plateValues[numDetected-1] != maskValue[ML][0] or abs( c - plateCols[numDetected-1] ) > maskCol )
 			            {   
 			                plateCols[numDetected] = c;
 			                plateValues[numDetected] = maskValue[ML][0];
 			                numDetected = numDetected + 1;
 			            }
 			        }
- 
-                    //exits the processing of the plate image if 7 characters are already found
-			        if ( numDetected >= 7 )
-			            return;
 			    }
                 //resets the variables for next run through
                 numeratorSum = 0.0;
@@ -163,16 +204,33 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
                 ImgNeighborhoodAvg = 0;
 		    }
 		}
-        //displays the correlation coefficients in a new image for each mask
-        CorImgLabel += maskValue[ML];
-        displayImage(XCorImg, CorImgLabel);
+
+		if ( valFound )
+		{
+        	//displays the correlation coefficients in a new image for each mask
+        	CorImgLabel += maskValue[ML];
+        	displayImage(XCorImg, CorImgLabel);
+			valFound = false;
+		}
+
+        //exits the processing of the plate image if 7 characters are already found
+		if ( numDetected >= num )
+		    return;
+
         maskAverage = 0.0;   //reset the mask average
         maskSize = 0;
-    }                                            
+    } 
+}                                           
 }
 
-void MyApp::orderPlateValues( char plateValues[], int plateCols[] )
+void MyApp::orderPlateValues( char plateValues[], int plateCols[], double timeElapse )
 {
+	ostringstream convertTime;
+	convertTime << timeElapse;
+	Image textbox;
+	textbox.SetHeight( 150 );
+	textbox.SetWidth( 200 );
+	string message = "";
     char license[7] = {'&'};
     int positions[7] = { plateCols[0], plateCols[1], plateCols[2], plateCols[3], 
                          plateCols[4], plateCols[5], plateCols[6] };
@@ -193,14 +251,24 @@ void MyApp::orderPlateValues( char plateValues[], int plateCols[] )
         }
 	}
 
-    //DEBUG	
-    cout << "Plate Values:           " << plateValues[0] << plateValues[1] << plateValues[2] << plateValues[3] << plateValues[4] << plateValues[5] << plateValues[6] << endl;
-    cout << "Plate Values (ordered): ";
-    
-    //print the characters in the array
+	message += "Plate Values: ";
 	for ( int p = 0; p < 7; p++ )
 	{
-	    cout << license[p];
-    }
-    cout << endl;
+		message += license[p] + ' ';
+	}
+	message += "\nTime Elapsed: " + convertTime.str() + "\n";
+
+	textbox.DrawText(10, 50, message, Pixel(255, 255, 255));
+
+
+    ////DEBUG	
+    //cout << "Plate Values:           " << plateValues[0] << plateValues[1] << plateValues[2] << plateValues[3] << plateValues[4] << plateValues[5] << plateValues[6] << endl;
+    //cout << "Plate Values (ordered): ";
+    
+    //print the characters in the array
+	//for ( int p = 0; p < 7; p++ )
+	//{
+	//    cout << license[p];
+    //}
+    //cout << endl;
 }
