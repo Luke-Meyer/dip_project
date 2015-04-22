@@ -86,23 +86,23 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
     int maskCol = 0;
     int maskSize = 0;
     string CorImgLabel;
-    string maskVersion[] = { "templates100", "templates80", "", "-2" };
+    string maskVersion[] = { "-80", "-90", "-100", "-110", "-120" };
     string maskValue[] = { "0", "2", "3", "4", "5", "6", "7", "8", "9", 
 			   "A", "B", "C", "D", "E", "F", "G", "H", "J", 
 			   "K", "M", "N", "O", "P", "Q", "R", "S", 
 			   "U", "V", "W", "X", "Y", "Z", "T", "L", "I", "1" };
     
 /*---loop through all mask versions---*/
-for( int MV = 0; MV < 2; MV++)
+for( int ML = 0; ML < 36; MV++)
 {
     /*---loop through all mask templates---*/
-    for ( int ML = 0; ML < 36; ML++)
+    for ( int MV = 0; MV < 5; MV++)
     {
         //sets string for new correlated values image
         CorImgLabel = "Mask = "; 
        
         /*---Read in a template from file---*/
-        string name = "../images/" + maskVersion[MV] + "/" + maskValue[ML] + maskVersion[MV+2] + ".JPG";
+        string name = "../images/templates/" + maskValue[ML] + "/" + maskValue[ML] + maskVersion[MV] + ".JPG";
         //string name = maskValue[ML] + ".JPG";
         Image mask( name );
         //checks if the image is valid
