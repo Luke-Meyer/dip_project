@@ -21,7 +21,8 @@ bool MyApp::Menu_Extraction_HoughMatching( Image &image )
 
     //initalize an array to keep track of found numbers or letters
     int plateCols[7] = { 0 };
-    char plateValues[7] = { ' ' }; 
+    char plateValues[7] = { ' ' };
+    double timeElapsed = 0.0; 
 
     cout << " before houghExtraction " << endl;
     
@@ -31,7 +32,7 @@ bool MyApp::Menu_Extraction_HoughMatching( Image &image )
     cout << "after houghExtraction " << endl;
         
     //order the output according to col position
-    orderPlateValues( plateValues, plateCols );
+    orderPlateValues( plateValues, plateCols, timeElapsed );
 	
     //display alpha-numeric sequence
 	//display time taken
@@ -61,10 +62,12 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 
     
     string CorImgLabel;
+    string maskVersion[] = { "templates100", "templates80", "", "-2" };
     string maskValue[] = { "A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L",
                            "M", "N", "O", "P", "Q", "R", "S", "T", "U", "V", "W", "X",
                            "Y", "Z", "0", "1", "2", "3", "4", "5", "6", "7", "8", "9" };
-
+    for( int MV = 0; MV < 2; MV++ )
+    {
     for( int ML = 0; ML < 36; ML++ ) // for each of the 36 template images
     {   
         cout << "INSIDE BIG LOOP" << endl;
@@ -75,7 +78,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         CorImgLabel = "Mask = "; // get name of current mask
   
         // read in template image from file
-        string name = "../images/" + maskValue[ML] + ".JPG";
+        string name = "../images/" + maskVersion[MV] + "/" + maskValue[ML] + maskVersion[MV+2] + ".JPG";
         Image mask( name );
         cout << "READ IN MASK TEMPLATE IMAGE" << endl;
 
@@ -159,8 +162,8 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               theta = ( theta * ( 180 / PI ) );
               
 
-             // if( theta < 0 )  // convert to positive degrees if theta is negative
-               // theta = ( theta + 360 );
+              if( theta < 0 )  // convert to positive degrees if theta is negative
+                theta = ( theta + 360 );
               //cout << "theta " << theta << endl;
                                   
                              //compute radius from centroid to boundary point
@@ -172,6 +175,9 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
  
               //convert alpha from radians to degrees
               alpha = ( alpha * ( 180 / PI ) );
+
+              if( alpha < 0 ) // if alpha is negative, make it positive
+                alpha += 360;
             
               //cout << "alpha " << alpha << " " << "radius " << radius << "theta " << theta << endl;
 
@@ -188,7 +194,8 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
              {
                while( curr != Rtable.end() && curr -> theta < entry.theta )
                  curr++;
-
+             // cout << "mask " << name << endl;
+              //cout << "radius " << entry.radius << "alpha " << entry.alpha << "theta " << entry.theta << endl;
                Rtable.insert( curr, entry );
              }
 
@@ -258,14 +265,15 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                  xCoord = ( r + ( curr -> radius  *  cos( curr -> alpha ) )) ;
 
                  yCoord = ( c + ( curr -> radius  *  sin( curr -> alpha ) ));
-          
+    
+                          
                  //cout << xCoord << " " << yCoord << endl;  // debugging
                  accumulatorArray[xCoord][yCoord] += 1; // increment accumulator
               
                  curr++; // increment iterator to next list entry of same theta value
               
               }
-              cout << "xCoord: " << xCoord << "yCoord: " << yCoord << endl;
+             // cout << "xCoord: " << xCoord << "yCoord: " << yCoord << endl;
             }
 
             sumX = 0;  // reinitialize important variables for future calculations
@@ -283,9 +291,9 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 
     //Possible locatoins for the shape are given by maxima in accumulator array
      // search for maxima in accumulator array
-        for( int r = 0; r < imageRows; r++ )
+        for(  r = 0; r < imageRows; r++ )
         {
-          for( int c = 0; c < imageCols; c++ )
+          for(  c = 0; c < imageCols; c++ )
           {
             if( accumulatorArray[r][c] > max ) // get max value in accumulator;
             {
@@ -325,7 +333,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
     // maybe do  more stuff with column position of possible object match
       
   }
- 
+  }
 
 }
 
