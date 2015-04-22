@@ -93,7 +93,7 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
 			   "U", "V", "W", "X", "Y", "Z", "T", "L", "I", "1" };
     
 /*---loop through all mask versions---*/
-for( int ML = 0; ML < 36; MV++)
+for( int ML = 0; ML < 36; ML++)
 {
     /*---loop through all mask templates---*/
     for ( int MV = 0; MV < 5; MV++)
@@ -112,7 +112,7 @@ for( int ML = 0; ML < 36; MV++)
         }   
 
         //Prints to the cosole what mask is being processed
-        cout << "Running Mask: " << maskValue[ML] + maskVersion[MV+2] << endl;
+        cout << "Running Mask: " << maskValue[ML] + maskVersion[MV] << endl;
 
         //gets current mask values
         maskRow = mask.Height();
