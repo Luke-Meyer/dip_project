@@ -5,6 +5,20 @@
 
 #define PI 3.1415926535 //Define the value of Pi
 
+<<<<<<< HEAD
+
+// structure for entry into R table
+struct RtableEntry
+{  
+  float alpha;
+  float radius; 
+  RtableEntry* next;
+};
+
+//typedef RtableEntry curr*;
+
+=======
+>>>>>>> 3952f054e579a12813e91cd60c588e865dd80b0e
 bool MyApp::Menu_Extraction_HoughMatching( Image &image )
 {
     if ( image.IsNull() ) return false;     //checks if the image is valid
@@ -33,12 +47,22 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
     Image mask;  // mask object to hold template image
     int xReference = 0; // x coord of reference point in template
     int yReference = 0; // y coord of reference point in template
-    int count = 0; // used to compute reference point in mask 
+    float count = 0.0; // used to compute reference point in mask 
  
+<<<<<<< HEAD
+   // list<RtableEntry> Rtable;  // R table to be constructed from a linked list
+   // list<RtableEntry>::iterator curr; // iterator to traverse R table
+    
+    RtableEntry* Rtable[360] = {NULL}; // R table with a resolution of 360 degrees  
+   // int entriesInRtable[360] = {0}; // array to track how many (a,r) pairs have been put into Rtable for a given theta
+   // RtableEntry *curr = NULL;
+
+=======
     float Rtable[2][360]; // R table containing radius and orientation data
                             //Rtable[0][] = radius values, Rtable[1] = orientation values
+>>>>>>> 3952f054e579a12813e91cd60c588e865dd80b0e
 
-    int threshold = 0; // threshold needed for R-tabel computation( defines edge pixel )
+    int threshold = 250; // threshold needed for R-tabel computation( defines edge pixel )
 
     int imageRows = image.Height(); // get dimensions of image
     int imageCols = image.Width();
@@ -76,7 +100,11 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         sobelMagnitude( mask );  
 
     //DETERMINE CENTRIOD OF TEMPLATE IMAGE //
+<<<<<<< HEAD
+        for( int x = 0 ; x < maskRows; x++ ) 
+=======
         for( int x = 0; x < maskRows; x++ ) 
+>>>>>>> 3952f054e579a12813e91cd60c588e865dd80b0e
         {
           for( int y = 0; y < maskCols; y++ )
           {
@@ -84,7 +112,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
             {
               xReference += x;
               yReference += y;
-              count += 1;
+              count += 1.0;
 
             }
        
@@ -96,11 +124,18 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 
     
         //COMPUTE R-TABLE //
+<<<<<<< HEAD
+       
+        float radius = 0.0; // radius length from reference point to boundary 
+        float alpha = 0.0; // orienation of boundary point relative to centroid
+        float theta = 0.0; // angle between x axis and radius of centroid to boundary
+=======
         Image maskCopy = mask; // make copy of template image to ensure data intregrity
 
         float radius = 0.0; // radius length from reference point to boundary 
         float alpha = 0.0; // orienation of boundary point relative to centroid
         int theta = 0; // angle between x axis and radius of centroid to boundary
+>>>>>>> 3952f054e579a12813e91cd60c588e865dd80b0e
 
 
         //create filter mask matrix
@@ -118,6 +153,80 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         {
           for( int y = 0; y < maskCols; y++ )
           {
+<<<<<<< HEAD
+            int rbound = r - 1;
+            int cbound = c - 1;
+
+            if( maskCopy[r][c] > threshold )
+            {   // cout << "maskPixel " << maskCopy[r][c] << endl; 
+                 for( int row = r - 1; row < ( 3 + rbound ); row++ )
+                 {  for( int col = c - 1; col < ( 3 + cbound ); col++ )
+                    { 
+                 //compute theta ( sobel edge direction ) for current pixel//
+                    sumX += maskX[i] * maskCopy[row][col];
+                    sumY += maskY[i] * maskCopy[row][col];
+                  
+                    i++;
+                    }
+                 }
+                   
+              
+              theta = atan2( (double) sumY, (double) sumX ); // calculate theta
+
+              //convert theta from radians to degrees
+              theta = ( theta * ( 180 / PI ) );
+              
+
+              //if( theta < 0 )  // convert to positive degrees if theta is negative
+                // theta = ( theta + 360 );
+              //cout << "theta " << theta << endl;
+                                  
+                             //compute radius from centroid to boundary point
+              radius = sqrt( ( ( xReference - r ) * ( xReference - r ) ) +       
+                             ( ( yReference - c ) * ( yReference - c ) ) );
+   
+              //compute orientation of boundary point relative to centroid
+              alpha = atan2( ( (double)  yReference - c ) , ( (double)  xReference - r ) );
+ 
+              //convert alpha from radians to degrees
+              alpha = ( alpha * ( 180 / PI ) );
+
+
+               // insert into R table using theta as an index
+              
+                Rtable[ ( int ) theta ]->radius = radius; // FIll R Table
+                Rtable[ ( int )theta ]->alpha = alpha;
+
+                //entriesInRtable[ (int)theta] += 1;
+              
+
+             // if( alpha < 0 ) // if alpha is negative, make it positive
+               // alpha += 360;
+            
+              //cout << "alpha " << alpha << " " << "radius " << radius << "theta " << theta << endl;
+
+             /*
+             RtableEntry entry; // create a node to insert into R table
+             entry.radius = radius; //fill values of entry to be inserted into R table
+             entry.alpha = alpha;
+             entry.theta = theta;
+             
+
+             curr = Rtable.begin(); // set iterator to beginning of R table linked list
+
+             if( Rtable.empty() ) // if nothing is in the R table
+               Rtable.insert( curr, entry ); // insert first element into R table
+             else  // else traverse the list and insert the entry in ascending theta order
+             {
+               while( curr != Rtable.end() && curr -> theta < entry.theta )
+                 curr++;
+             // cout << "mask " << name << endl;
+              //cout << "radius " << entry.radius << "alpha " << entry.alpha << "theta " << entry.theta << endl;
+               Rtable.insert( curr, entry );
+             } */
+
+            
+=======
             if( maskCopy[x][y] > threshold )
             {
               //compute theta ( sobel edge direction ) for current pixel//
@@ -141,6 +250,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               Rtable[0][theta] = radius;  //store radius and orientation in Rtable
               Rtable[1][theta] = alpha;
 
+>>>>>>> 3952f054e579a12813e91cd60c588e865dd80b0e
               sumX = 0; // reinitialize important variables for future calculations
               sumY = 0;
               theta = 0;
@@ -149,8 +259,24 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 
           }
 
+<<<<<<< HEAD
+       /* list<RtableEntry>::iterator temp;  //DEBUGGING
+        temp = Rtable.begin();
+        int num = 0;
+
+        while( temp != Rtable.end()  ) 
+        { cout << " name of mask " << name << endl;
+          cout << "node #" << num << endl;
+          cout << "radius " << temp->radius << " " << "alpha " << temp->alpha << " " << "theta " << temp->theta << endl;
+          temp++;
+          num +=1;
+        } */ 
+        cout << "BUILT R TABLE" << endl;
+
+=======
         }
  
+>>>>>>> 3952f054e579a12813e91cd60c588e865dd80b0e
         
         // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN IMAGE //
 
@@ -179,6 +305,31 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               if( theta < 0 )  // convert to positive radians if theta is negative
                 theta = ( theta + 2 * PI );                                  
                
+<<<<<<< HEAD
+              //curr = Rtable.begin(); // set iterator to beginning of R table
+
+              // set iterator to first entry in list of particular theta value
+             // while( curr != Rtable.end() && curr -> theta != theta )
+                //curr++;
+              
+              // while pointing at an entry with a particular theta value
+              //while( curr != Rtable.end() && curr -> theta == theta  )
+             // {
+                 //calculate indices for accumulator array
+                 
+                 
+                 xCoord = ( r + ( Rtable[ (int) theta  ]->radius  *  cos( Rtable[ (int) theta ]->alpha ) )) ;  
+
+                 yCoord = ( c + ( Rtable[ (int) theta  ]->radius *  sin( Rtable[ (int) theta ]->alpha  ) ));
+    
+                          
+                 accumulatorArray[xCoord][yCoord] += 1; // increment accumulator
+                 
+                 //curr++; // increment iterator to next list entry of same theta value
+              
+             // }
+              //cout << "xCoord: " << xCoord << "yCoord: " << yCoord << endl;
+=======
                          //scale radians to pixel intensities
               imageCopy[x][y] = ( ( theta / ( 2 * PI ) ) * 255.0 );
       
@@ -188,6 +339,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               yCoord = ( y + Rtable[0][theta] ) * ( sin( Rtable[1][theta] ) );
           
               accumulatorArray[xCoord][yCoord] += 1; // increment accumulator
+>>>>>>> 3952f054e579a12813e91cd60c588e865dd80b0e
             }
 
             sumX = 0;  // reinitialize important variables for future calculations
