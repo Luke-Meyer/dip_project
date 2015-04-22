@@ -8,6 +8,8 @@
 bool MyApp::Menu_Extraction_HoughMatching( Image &image )
 {
     if ( image.IsNull() ) return false;     //checks if the image is valid
+	
+	double timeElapse = 0;
 
     //initalize an array to keep track of found numbers or letters
     int plateCols[7] = { 0 };
@@ -17,7 +19,7 @@ bool MyApp::Menu_Extraction_HoughMatching( Image &image )
     houghExtraction( image, plateValues, plateCols );
         
     //order the output according to col position
-    orderPlateValues( plateValues, plateCols );
+    orderPlateValues( plateValues, plateCols, timeElapse );
 	
     //display alpha-numeric sequence
 	//display time taken
