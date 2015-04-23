@@ -1,12 +1,13 @@
 #include "main.h"
 
-/********************************************************************************************/
-// ----------------------------------- menu bar additions ------------------------------------
+/*************************************************************************
+   Functions: These are supplimental functions used to keep the structure
+              of the program. The tools are available to the user if other
+              processing is desired.
 
-// the following methods add actions to the menu bar
-// note the method prototype and naming conventions:
-// bool ClassName::Menu_Menubar_Menuitem( Image & );
-
+   Author:    Dr. Weiss
+ ************************************************************************/
+ 
 // ----------------------------------- palette manipulations ---------------------------------
 
 // negate the image

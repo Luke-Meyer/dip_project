@@ -1,17 +1,11 @@
+/*************************************************************************
+   Class:  This class establishes the menu items and and supplemental
+           functions necessary in the program.
+   Author: Dr. Weiss
+   Date:   Spring 2015
+   Course: SDSM&T CSC442/542 DIP
+ ************************************************************************/
 
-/*
-               ***** example4.h *****
-
-Demo program to illustrate qtImageLib.
-Example 4 shows how to get user input via dialog boxes.
-
-Author: John M. Weiss, Ph.D.
-Written Spring 2015 for SDSM&T CSC442/542 DIP course.
-
-Modifications:
-*/
-
-// next two lines are typical
 #ifndef _MAIN_H
 #define _MAIN_H
 
@@ -59,8 +53,7 @@ class MyApp : public QObject
     bool Menu_Segment_IterativeLaplacianThreshold( Image & );
     bool Menu_Segment_AdaptiveBinaryThreshold( Image & );
     
-    bool Menu_Extraction_CorrelationCoefficient_StandardPlate( Image & );
-    bool Menu_Extraction_CorrelationCoefficient_PersonalizedPlate( Image & );
+    bool Menu_Extraction_CorrelationCoefficient( Image & );
     bool Menu_Extraction_HoughMatching( Image & );
 };
 
