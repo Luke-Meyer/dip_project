@@ -95,10 +95,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         int maskRows = mask.Height();  // get mask dimensions
         int maskCols = mask.Width();
    
-
-    // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN TEMPLATE IMAGE //
-        sobelMagnitude( mask );  
-
+        
     //DETERMINE CENTRIOD OF TEMPLATE IMAGE //
         
         for( int x = 0; x < maskRows; x++ ) 
@@ -123,8 +120,6 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         float radius = 0.0; // radius length from reference point to boundary 
         float alpha = 0.0; // orienation of boundary point relative to centroid
         float theta = 0.0; // angle between x axis and radius of centroid to boundary
-        Image maskCopy = mask; // make copy of template image to ensure data intregrity
-
         //create filter mask matrix
         //These are seperable, but using a 3x3 matrix
         int maskX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
@@ -133,6 +128,10 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         int sumY = 0;
         int i = 0;  // loop variable to index sobel masks
 
+        Image maskCopy( mask );
+
+        // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN TEMPLATE IMAGE //
+        sobelMagnitude( maskCopy );  
 
 
          //Build R-table
