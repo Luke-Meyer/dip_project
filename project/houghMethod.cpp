@@ -179,7 +179,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                 
                // insert ( alpha, radius) pair into R table using theta as an index
               
-               if( Rtable[ (int) theta ] == 0 )
+               if( Rtable[ (int) theta ] -> count == 0 )
                {
                
                  Rtable[ ( int ) theta ]->radius = radius; // FIll R Table
