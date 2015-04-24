@@ -159,8 +159,9 @@ for( int ML = 0; ML < 36; ML++)
 			        //if list is empty 
 			        if ( numDetected == 0 )
 			        {
-			            plateCols[numDetected] = c;
-			            plateValues[numDetected] = maskValue[ML][0];
+			            plateCols[0] = c;
+			            plateValues[0] = maskValue[ML][0];
+				    corrArr[0] = correlation;
 			            numDetected = 1;
 				    cout << "Added to Plate." << endl;
 			        }   
@@ -225,13 +226,6 @@ for( int ML = 0; ML < 36; ML++)
                 ImgNeighborhoodAvg = 0;
 
 
-	        //exits the processing of the plate image if 7 characters are already found
-		if ( numDetected == num )
-		{
-        	    CorImgLabel += maskValue[ML];
-        	    displayImage(XCorImg, CorImgLabel);
-		    return;
-		}
 
 		}
 		}
@@ -248,7 +242,15 @@ for( int ML = 0; ML < 36; ML++)
         maskSize = 0;
     } 
     
-}                                           
+}
+//exits once all items have be
+//		if ( numDetected == num )
+//		{
+//        	    CorImgLabel += maskValue[ML];
+//        	    displayImage(XCorImg, CorImgLabel);
+//		    //return;
+//		}
+                                           
 }
 
 void MyApp::orderPlateValues( char plateValues[], int plateCols[], double timeElapse )
