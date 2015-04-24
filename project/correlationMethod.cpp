@@ -3,39 +3,7 @@
 #include <string>
 #include <algorithm>
 
-
-bool MyApp::Menu_Extraction_CorrelationCoefficient_PersonalizedPlate( Image &image )
-{
-    if ( image.IsNull() ) return false;     //checks if the image is valid
-
-    Image copy(image);
-    iterativeBinaryThreshold( copy );
-
-    //initalize an array to keep track of found numbers or letters
-    double timeElapse = 0;
-    int plateCols[7] = { 0 };
-    char plateValues[7] = { ' ' };
-    
-	//start time
-	clock_t start = clock();
-
-    //call the extraction algorithm
-    correlationExtraction( copy, plateValues, plateCols, 7 );
-
-	//end time
-	clock_t end = clock();
-
-	timeElapse = double(end - start) / CLOCKS_PER_SEC;
-        
-	//order the output according to col position
-	orderPlateValues( plateValues, plateCols, timeElapse );
-	
-    //display alpha-numeric sequence
-	//display time taken
-	return true;
-}
-
-bool MyApp::Menu_Extraction_CorrelationCoefficient_StandardPlate( Image &image )  
+bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )  
 {
     if ( image.IsNull() ) return false;     //checks if the image is valid
 
@@ -45,7 +13,7 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient_StandardPlate( Image &image )
     iterativeBinaryThreshold( copy );
 
     //initalize an array to keep track of found numbers or letters
-    int plateCols[7] = { 0 };
+    int plateCols[7] = { -200, -200, -200, -200, -200, -200, -200 };
     char plateValues[7] = { ' ' };
     
 	//start time
