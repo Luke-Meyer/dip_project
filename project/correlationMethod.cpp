@@ -177,7 +177,7 @@ for( int ML = 0; ML < 36; ML++)
 					    for ( int val = 0; val < 7; val++ )
 					    {
 						// if the new found character is within a half distance to an old character
-						if( /*plateValues[val] == maskValue[ML][0] &&*/ abs( c - plateCols[val] ) < (maskCol/2))
+						if( /*plateValues[val] == maskValue[ML][0] &&*/ abs( c - plateCols[val] ) < (maskCol/1.4))
 						{
 						    // and if the new correlation is higher than the old correlation
 						    if (correlation > corrArr[val])
