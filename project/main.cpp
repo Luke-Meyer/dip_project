@@ -36,7 +36,7 @@
                by "make". To clean the project, type on
                the command line "make clean".          
                
-   Usage:      To run this application after fowllowing the above compiling
+   Usage:      To run this application after following the above compiling
                instructions, type "./main" from the command line to start the
                program. Here you can open an image, then choose either the 
                correlation method or hough method from the extraction menu.

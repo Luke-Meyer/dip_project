@@ -2,7 +2,16 @@
 #include <cmath>
 #include <string>
 #include <algorithm>
-
+/*************************************************************************
+   Function:   Extraction - Correlation Coefficient
+   Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
+   Description: this function will set up all elements required to
+                extract a sequence of alphanumeric characters from a
+                licence plate and call the functions
+                correlationExtraction and orderPlateValues in order to 
+                implement the template matching portion of the project
+   Parameters: image[in/out] - Image to be matched using templates
+ ************************************************************************/
 bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )  
 {
     if ( image.IsNull() ) return false;     //checks if the image is valid
@@ -20,7 +29,7 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )
         clock_t start = clock();
 
     //call the extraction algorithm
-    correlationExtraction( copy, plateValues, plateCols, 6 );
+    correlationExtraction( copy, plateValues, plateCols);
 
         //end time
         clock_t end = clock();
@@ -35,9 +44,25 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )
         return true;
 }
 
-
-void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCols[], int num )
+/*************************************************************************
+   Function: Correlation Extraction
+   Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
+   Description: This function will be extract all character values that 
+                give a template correlation of over 70%. Each match
+                will have its atributes stored within a system of arrays
+                including column found, character found, and correlation
+                found. If at any point an alternate character should 
+                read in higher than any other, its value will be stored
+                and the previous match removed from the array. 
+                After completion of extraction, results will be returned
+                to the Extraction - Correlation Coefficient function.
+   Parameters:  image[in/out] - image to have characters extraced from
+                plateValues[in/out] - list of plate characters detected
+                plateCols[in/out] - list of character positions by column
+ ************************************************************************/
+void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCols[] )
 {
+    // initialize variables
     bool check = true;
     bool valFound = false;
     int numDetected = 0;
@@ -185,7 +210,7 @@ for( int ML = 0; ML < 36; ML++)
                                 }
                                 // turn check to false
                                 check = false;
-				//cout << check << endl;
+                                //cout << check << endl;
                             }
                         }
 
@@ -236,6 +261,18 @@ for( int ML = 0; ML < 36; ML++)
                                        
 }// end function
 
+/*************************************************************************
+   Function: Order Plate Values
+   Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
+   Description: this function will sort the characters detected on the 
+                plate in function correlationExtraction using their 
+                column positions. It will also print these results 
+                to screen, along with the time elapsed, for the user. 
+   Parameters:  plateValues[in/out] - plate characters found on license
+                                     plate using correlationExtraction
+                plateCols[in/out] - column positoin of characters found
+                timeElapse[in] - the time it took to analyze full plate
+ ************************************************************************/
 void MyApp::orderPlateValues( char plateValues[], int plateCols[], double timeElapse )
 {
         ostringstream convertTime;
@@ -251,44 +288,33 @@ void MyApp::orderPlateValues( char plateValues[], int plateCols[], double timeEl
     //sort the array of values and column positions                         
     sort( positions, positions + 7 );
 
-    //DEBUG
-    cout <<"Column Positions: "<< positions[0] <<' '<< positions[1] <<' '
-         << positions[2] <<' ' << positions[3] <<' '<< positions[4] <<' '
-         << positions[5] <<' ' << positions[6] << endl;
-
     //Determine order of characters in license plate
+    //for each position on the final plate
     for ( int i = 0; i < 7; i++ )
     {
+        //determine corresponding character based on sorted positions
         for ( int j = 0; j < 7; j++ )
         {
             if ( plateCols[j] == positions[i] )
                 license[i] = plateValues[j];
         }
-        }
+    }
 
-        message += "Plate Values: ";
-        for ( int p = 0; p < 7; p++ )
+    // add "Plate Values" to the message to be printed to screen
+    message += "Plate Values: ";
+    // For each character on the plate, push back the message to include it
+    for ( int p = 0; p < 7; p++ )
         {
                 message.push_back( license[p] );
-                //message.insert( ' ' );
         }
-        
+
+    // Send the message to screen in a small image called "textbox"        
         textbox.DrawText( 10, 70, message, Pixel(255, 255, 255));        
 
+    // begin on a new message for the time elapsed
         message = "Time Elapsed: " + convertTime.str();
 
         textbox.DrawText(10, 50, message, Pixel(255, 255, 255));
 
         displayImage(textbox, "Sequence Extracted");
-    ////DEBUG        
-    cout << "Plate Values:           " << plateValues[0] << plateValues[1] 
-         << plateValues[2] << plateValues[3] << plateValues[4] << plateValues[5] << plateValues[6] << endl;
-    //cout << "Plate Values (ordered): ";
-    
-    //print the characters in the array
-        //for ( int p = 0; p < 7; p++ )
-        //{
-        //    cout << license[p];
-    //}
-    //cout << endl;
 }
