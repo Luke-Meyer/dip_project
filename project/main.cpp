@@ -36,10 +36,19 @@
                by "make". To clean the project, type on
                the command line "make clean".          
                
-   Usage:      To run this application after fowllowing the above compiling
+   Usage:      To run this application after following the above compiling
                instructions, type "./main" from the command line to start the
                program. Here you can open an image, then choose either the 
                correlation method or hough method from the extraction menu.
+
+		       The correlation coefficient is a very specific algorithm. 
+               In this program, it can be implemented on direct license
+               plate photos with no rotation or angle. Each character on the
+               license plate must be between 80 and 120 characters wide. In 
+               the submission of our program, we have included a number of 
+               plates used to test this program. We cannot guarantee the
+               effectiveness of this program on images under alternate
+               conditions.
           
    Known bugs/missing features:
    
