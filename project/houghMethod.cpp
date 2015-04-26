@@ -11,12 +11,11 @@ struct RtableEntry
 {  
   float alpha;
   float radius; 
-  int count;
   RtableEntry *next;
 };
 
 /*************Global Type Definitions*****************************************/
-typedef RtableEntry *entry_ptr;
+//typedef RtableEntry *entry_ptr;
 
 /*****************************************************************************/
 
@@ -45,7 +44,7 @@ bool MyApp::Menu_Extraction_HoughMatching( Image &image )
 
 void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 {     
-    //This algorithm is interpreted from hough.pdf that Weiss posted on the web" //
+    //This algorithm is interpreted from hough.pdf that Weiss posted on the web" 
 
     Image mask;  // mask object to hold template image
     int xReference = 0; // x coord of reference point in template
@@ -53,14 +52,30 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
     float count = 0.0; // used to compute reference point in mask 
  
     
-    entry_ptr Rtable[360] = {NULL}; // R table with a resolution of 360 degrees  
+    RtableEntry *Rtable[360] = {}; // R table with a resolution of 360 degrees 
    
-    int threshold = 250; // threshold needed for R-tabel computation( defines edge pixel )
+    for( int i = 0; i < 360; i++ )
+    {  Rtable[i] = new (nothrow) RtableEntry;
+       Rtable[i] -> next = NULL;
+       
+    }  
+    
+   // Rtable = new (nothrow) RtableEntry * [360]; 
+    
+   
+    int threshold = 200; // threshold needed for R-tabel computation( defines edge pixel )
 
     int imageRows = image.Height(); // get dimensions of image
     int imageCols = image.Width();
 
-    int accumulatorArray[imageRows][imageCols]; // accumulator array
+    int **accumulatorArray = new (nothrow) int*[imageRows]; // accumulator array
+
+    for( int i = 0; i < imageRows; i++ )
+    {
+        accumulatorArray[i] = new int;//[imageCols];
+    }
+       
+
     int numDetected = 0;
 
     
@@ -122,112 +137,109 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         float theta = 0.0; // angle between x axis and radius of centroid to boundary
         //create filter mask matrix
         //These are seperable, but using a 3x3 matrix
-        int maskX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
-        int maskY[9] = {1, 2, 1, 0, 0, 0, -1, -2, -1};
-        int sumX = 0;
-        int sumY = 0;
-        int i = 0;  // loop variable to index sobel masks
+       // int maskX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
+        //int maskY[9] = {1, 2, 1, 0, 0, 0, -1, -2, -1};
+       // float sumX = 0;
+        //float sumY = 0;
+        //int i = 0;  // loop variable to index sobel masks
 
-        Image maskCopy( mask );
+        Image magnitudeCopy( mask );
+        Image directionCopy( mask );
 
         // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN TEMPLATE IMAGE //
-        sobelMagnitude( maskCopy );  
-
+        sobelMagnitude( magnitudeCopy );  
+        sobelDirection( directionCopy );
+        
 
          //Build R-table
         for( int r = 0; r < maskRows; r++ )
         {
           for( int c = 0; c < maskCols; c++ )
           {
-            int rbound = r - 1;
-            int cbound = c - 1;
-
-            if( maskCopy[r][c] > threshold )
-            {   // cout << "maskPixel " << maskCopy[r][c] << endl; 
-                 for( int row = r - 1; row < ( 3 + rbound ); row++ )
-                 {  for( int col = c - 1; col < ( 3 + cbound ); col++ )
-                    { 
-                 //compute theta ( sobel edge direction ) for current pixel//
-                    sumX += maskX[i] * maskCopy[row][col];
-                    sumY += maskY[i] * maskCopy[row][col];
-                  
-                    i++;
-                    }
-                 }
-                   
-              
-              theta = atan2( (double) sumY, (double) sumX ); // calculate theta
+           // int rbound = r - 1;
+          //  int cbound = c - 1;
+            cout << "BEFORE RTABLE" << endl;
+            if( magnitudeCopy[r][c] > threshold )
+            {    cout << "maskPixel " << endl; 
+                            
+              theta = directionCopy[r][c]; // calculate theta
 
               //convert theta from radians to degrees
-              theta = ( theta * ( 180 / PI ) );
+              //theta = ( theta * 180 / PI  );
               
-
-              //if( theta < 0 )  // convert to positive degrees if theta is negative
-                // theta = ( theta + 360 );
-              //cout << "theta " << theta << endl;
+              cout << "theta " << theta << endl;
                                   
                              //compute radius from centroid to boundary point
               radius = sqrt( ( ( xReference - r ) * ( xReference - r ) ) +       
                              ( ( yReference - c ) * ( yReference - c ) ) );
-   
-              //compute orientation of boundary point relative to centroid
+ 
+               //compute orientation of boundary point relative to centroid
               alpha = atan2( ( (double)  yReference - c ) , ( (double)  xReference - r ) );
  
               //convert alpha from radians to degrees
-              alpha = ( alpha * ( 180 / PI ) );
+              alpha = ( alpha * 180 / PI  );
  
                 
                // insert ( alpha, radius) pair into R table using theta as an index
-              
-               if( Rtable[ (int) theta ] -> count == 0 )
-               {
-               
-                 Rtable[ ( int ) theta ]->radius = radius; // FIll R Table
+               cout << "JUST OUTSIDE" << endl;
+               if( Rtable[ (int) ( theta + .5 ) ] -> next == NULL ) 
+               {                 
+                 cout << "MADE IT INSIDE" << endl;
+                 
+                 RtableEntry *temp = new (nothrow) RtableEntry;
+                 temp -> radius = radius;
+                 temp -> alpha = alpha;
+                 temp -> next = NULL;
+                 cout << "ALLOCATED TEMP NODE" << endl;
+                
+                 /*Rtable[ ( int ) theta ]->radius = radius; // FIll R Table
+                 cout << "First radius " << Rtable[(int)theta]->radius << endl;
                  Rtable[ ( int ) theta ]->alpha = alpha;
+                 cout << "First alpha " << Rtable[(int)theta]->alpha << endl;
                   Rtable[ ( int ) theta ]->count += 1;
+                  */
+                  Rtable[ (int) (theta+.5) ] -> next = temp;
                }
+              
               // if there is one other (alpha,radius) pair for this theta
               else 
                {
+                cout << "NOT THE FIRST PAIR FOR GIVEN THETA" << endl;
+                RtableEntry * temp = new (nothrow) RtableEntry  ;  // instantiate a temp entry for insertion into Rtable
 
-                entry_ptr temp;  // instantiate a temp enry for insertion into Rtable
-
+                
                  //fill temp entry
                 temp -> radius = radius;
                 temp -> alpha = alpha;
-
-                entry_ptr curr;
                 
-                curr = Rtable[ (int) theta ]; 
 
-                while( curr -> next != NULL )
-                {
-                  curr = curr -> next;
+                //RtableEntry *curr;
+                
+                temp -> next = Rtable[ (int) (theta+.5) ] -> next;
+                Rtable[ (int) (theta+.5)] -> next = temp;
+                
+                
+                cout << "temp data " << temp -> radius << " " << temp -> alpha << " "<< endl;
+                   
+
                 }
-                curr -> next = temp;
-                Rtable[ (int) theta] -> count += 1;
-
-              }
 
                             
-              sumX = 0; // reinitialize important variables for future calculations
-              sumY = 0;
-              theta = 0;
-              i = 0;
+              }
             }
 
           }
 
-              cout << "BUILT R TABLE" << endl;
-
-        
+              cout << "BUILT R TABLE" << endl;     
  
         
         // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN IMAGE //
 
-        Image imageCopy = image; // make copy of image to ensure data integrity
+        Image imageMagCopy = image; // make copy of image to ensure data integrity
+        Image imageDirCopy = image;
 
-        sobelMagnitude( imageCopy ); // apply soble edge magnitude operation
+        sobelMagnitude( imageMagCopy ); // apply soble edge magnitude operation
+        sobelDirection( imageDirCopy );
     
         int xCoord = 0; // x coordinate to index accumulator array
         int yCoord = 0; // y coordinate to index accumulator array
@@ -239,45 +251,42 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         {
           for( int c = 0; imageCols; c++ )
           {
-            if( imageCopy[r][c] > threshold )  // if pixel is an edge pixel
+            if( imageMagCopy[r][c] > threshold )  // if pixel is an edge pixel
             {
-              //compute theta ( sobel edge direction ) for current pixel//
-              sumX += maskX[i] * imageCopy[r][c];
-              sumY += maskY[i] * imageCopy[r][c];
-
-              theta = atan2( (double) sumY, (double) sumX );
-              i++;
+              cout << "Building accumulator array" << endl;
+              theta = imageDirCopy[r][c];
+              cout << "theta " << theta << endl;
 
               //if( theta < 0 )  // convert to positive radians if theta is negative
                // theta = ( theta + 2 * PI );                                  
                
-              entry_ptr curr; 
+              RtableEntry *curr; 
 
-              curr = Rtable [ (int) theta ]; // set interator to proper theta index in R table
+              curr = Rtable [ (int) ( theta +.5) ]; // set interator to proper theta index in R table
 
                            
               // while pointing at an entry with a particular theta value
               while( curr != NULL )  
-             {  
+             {   cout << "shifting curr pointer " << endl;
                  //calculate the x and y coordinates for the position in the accumulator array to be incremented  
                  xCoord = ( r + curr ->radius  *  cos( curr->alpha ) ) ;  
 
                  yCoord = ( c + curr->radius *  sin( curr->alpha  ) );
-            
-                 accumulatorArray[xCoord][yCoord] += 1; // increment accumulator
+              
+                 cout << "GOING TO INCREMENT ACCUMULATOR " << endl;
+                 accumulatorArray[xCoord] += 1; // increment accumulator
+                 cout << "INCREMENTED ACCUMULATOR" << endl;
+                 cout << accumulatorArray[xCoord] << endl;
                  
                  curr = curr -> next; //move down to the next pair of ( alpha, radius )
                  
                               
               //cout << "xCoord: " << xCoord << "yCoord: " << yCoord << endl;
                          //scale radians to pixel intensities
-             }
+              }
 
-            sumX = 0;  // reinitialize important variables for future calculations
-            sumY = 0;
-            theta = 0.0;
-            i = 0;
-          }
+            }
+         }
         }
         cout << "BUILT ACCUMULATOR ARRAY" << endl;
         int max = 0; // maximum value in accumulator array
@@ -306,9 +315,9 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
             plateCols[numDetected] = colPos;
             plateValues[numDetected] = maskValue[ML][0];
             numDetected = 1;
-	  }   
-	  else //save the matches in the array
-	  {
+	 }   
+	 else //save the matches in the array
+	 {
             //checks if the template match is within 75 pixels, to eliminate redundant matches
             if ( abs( colPos - plateCols[numDetected-1] ) > 75 )
 	    {   
@@ -328,12 +337,31 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                
 
     // maybe do  more stuff with column position of possible object match
-    }
+     for( int x = 0; x < 360; x++ )
+    {
+      RtableEntry * curr;
+
+
+      while( Rtable[x] != NULL )
+      {
+        curr = Rtable[x];
+
+        Rtable[x] = Rtable[x] -> next;
+
+        delete []curr;
+    
+
+      }
       
-  }
+    }
  
- }
- }
+
+ 
+       //delete allocated Rtable
+            
+   }
+
+  }
 }
 
 
