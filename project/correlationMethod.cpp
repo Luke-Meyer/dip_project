@@ -276,7 +276,7 @@ for( int ML = 0; ML < 36; ML++)
 void MyApp::orderPlateValues( char plateValues[], int plateCols[], double timeElapse )
 {
         ostringstream convertTime;
-        convertTime << timeElapse;
+        convertTime << timeElapse/60;
         Image textbox(100, 400);
         textbox.Fill(Pixel(0,0,0));
 
@@ -312,7 +312,7 @@ void MyApp::orderPlateValues( char plateValues[], int plateCols[], double timeEl
         textbox.DrawText( 10, 70, message, Pixel(255, 255, 255));        
 
     // begin on a new message for the time elapsed
-        message = "Time Elapsed: " + convertTime.str();
+        message = "Time Elapsed: " + convertTime.str() + " minutes";
 
         textbox.DrawText(10, 50, message, Pixel(255, 255, 255));
 
