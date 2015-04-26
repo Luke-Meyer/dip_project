@@ -242,7 +242,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         sobelDirection( imageDirCopy );
     
         int xCoord = 0; // x coordinate to index accumulator array
-        int yCoord = 0; // y coordinate to index accumulator array
+       // int yCoord = 0; // y coordinate to index accumulator array
         
     
         // BUILD ACCUMULATOR ARRAY //
@@ -267,16 +267,17 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                            
               // while pointing at an entry with a particular theta value
               while( curr != NULL )  
-             {   cout << "shifting curr pointer " << endl;
-                 //calculate the x and y coordinates for the position in the accumulator array to be incremented  
+             {                     //calculate the x and y coordinates for the position in the accumulator array to be incremented  
                  xCoord = ( r + curr ->radius  *  cos( curr->alpha ) ) ;  
 
-                 yCoord = ( c + curr->radius *  sin( curr->alpha  ) );
+                //make yCoord = ( c + curr->radius *  sin( curr->alpha  ) );
               
-                 cout << "GOING TO INCREMENT ACCUMULATOR " << endl;
+                // cout << "GOING TO INCREMENT ACCUMULATOR " << endl;
                  accumulatorArray[xCoord] += 1; // increment accumulator
                  cout << "INCREMENTED ACCUMULATOR" << endl;
-                 cout << accumulatorArray[xCoord] << endl;
+                 cout <<"xCoord " <<  accumulatorArray[xCoord] << endl;
+                 cout << "theta " << theta << endl;
+                 cout << "mask: " << name << endl;
                  
                  curr = curr -> next; //move down to the next pair of ( alpha, radius )
                  
