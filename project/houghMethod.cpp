@@ -63,14 +63,14 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
    // Rtable = new (nothrow) RtableEntry * [360]; 
     
    
-    int threshold = 200; // threshold needed for R-tabel computation( defines edge pixel )
+    int threshold = 230; // threshold needed for R-tabel computation( defines edge pixel )
 
     int imageRows = image.Height(); // get dimensions of image
     int imageCols = image.Width();
 
     int **accumulatorArray = new (nothrow) int*[imageRows]; // accumulator array
 
-    for( int i = 0; i < imageRows; ++i )
+    for( int i = 0; i < imageRows; i++ )
     {
         accumulatorArray[i] = new int[imageCols];//[imageCols];
         
@@ -174,7 +174,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               //convert theta from radians to degrees
               //theta = ( theta * 180 / PI  );
               
-              cout << "theta " << theta << endl;
+              cout << "theta " << theta << endl;;
                                   
                              //compute radius from centroid to boundary point
               radius = sqrt( ( ( xReference - r ) * ( xReference - r ) ) +       
@@ -253,8 +253,8 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         Image imageMagCopy = image; // make copy of image to ensure data integrity
         Image imageDirCopy = image;
 
-        sobelMagnitude( imageMagCopy ); // apply soble edge magnitude operation
-        sobelDirection( imageDirCopy );
+        sobelMagnitude( imageMagCopy ); // apply sobel edge magnitude operation to image copy
+        sobelDirection( imageDirCopy ); //apply sobel edge direction operation to image copy
     
         float xCoord = 0.0; // x coordinate to index accumulator array
         float yCoord = 0.0; // y coordinate to index accumulator array
@@ -285,11 +285,13 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
              {   //calculate the x and y coordinates for the position in the accumulator array to be incremented 
                  // NOTE: Convert alpha to radians as cos and sin funcs expect radians for parameters              
                  float alphaCos = ( cos( curr -> alpha * PI/180 ) );
-                 if( alphaCos < 0.0 ) // if cos value is negative, make it positive
-                    alphaCos *= -1.0;
+                // if( alphaCos < 0.0 ) // if cos value is negative, make it positive
+                    //alphaCos *= -1.0;
+
                  float alphaSin = ( sin( curr -> alpha * PI/180 ) );
-                 if( alphaSin < 0.0 ) //if sin value is negatvie, make it positive
-                    alphaSin *= -1.0;
+                // if( alphaSin < 0.0 ) //if sin value is negatvie, make it positive
+                    //alphaSin *= -1.0;
+
                  xCoord = ( r +  curr ->radius  * alphaCos  );  
 
                  yCoord = ( c + curr->radius * alphaSin );
@@ -300,8 +302,11 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               
                  cout << "GOING TO INCREMENT ACCUMULATOR " << endl;
 
+ //////////////////SEGFAULTS HERE EVENTUALLY//////////////////////////////////////////
                  accumulatorArray[ (int) (xCoord+.5)][(int) (yCoord+.5)] += 1; 
-
+                 
+                // cout << accumulatorArray[190][103] << endl;
+                
                  cout <<"Tally for spot at xy coords " <<  accumulatorArray[(int) (xCoord+.5)][(int)(yCoord+.5)] << endl;
                  cout << "theta " << theta << endl;
                  cout << "mask: " << name << endl;
@@ -309,9 +314,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                  curr = curr -> next; //move down to the next pair of ( alpha, radius )
                  
                               
-              //cout << "xCoord: " << xCoord << "yCoord: " << yCoord << endl;
-                         //scale radians to pixel intensities
-              }
+                }
 
              }
           }
