@@ -53,14 +53,14 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
     int xReference = 0; // x coord of reference point in template
     int yReference = 0; // y coord of reference point in template
     float count = 0.0; // used to compute reference point in mask 
- 
-    
-    RtableEntry Rtable[360]; // R table with a resolution of 360 degrees 
+
+    RtableEntry *Rtable[360]; // R table with a resolution of 360 degrees 
    
 	//for ( int i = 0; i < 360; i++ )
-		Rtable[i].next = NULL;
+		//Rtable[i].next = NULL;
     for( int i = 0; i < 360; i++ )
-    {  Rtable[i] = new (nothrow) RtableEntry;
+    {  
+       Rtable[i] = new (nothrow) RtableEntry;
        Rtable[i] -> next = NULL;   
     }  
     
@@ -85,7 +85,6 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
       {
         accumulatorArray[i][j] = 0;
       }
-
     }
        
 
@@ -93,8 +92,8 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 
     
     string CorImgLabel;
-    string maskVersion[] = { "-80", "-90", "-100", "-110", "-120" };
-    string maskValue[] = { "0", "2", "3", "4", "5", "6", "7", "8", "9", 
+    string maskVersion[] = { "-100", "-90", "-80", "-110", "-120" };
+    string maskValue[] = { "2", "0", "3", "4", "5", "6", "7", "8", "9", 
 			               "A", "B", "C", "D", "E", "F", "G", "H", "J", 
 			               "K", "M", "N", "O", "P", "Q", "R", "S", "U",
 		            	   "V", "W", "X", "Y", "Z", "T", "L", "I", "1" };
@@ -147,9 +146,9 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         
         
     //DETERMINE CENTRIOD OF TEMPLATE IMAGE //  
-        for( int x = 0; x < maskRows; x++ ) 
+        for( int y = 0; y < maskRows; y++ ) 
         {
-          for( int y = 0; y < maskCols; y++ )
+          for( int x = 0; x < maskCols; x++ )
           {
             if( magnitudeTemp[x][y] > threshold )
             {
@@ -179,11 +178,11 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               cout << "theta " << theta << endl;
                                   
               //compute radius from centroid to boundary point
-              radius = sqrt( ( ( xReference - r ) * ( xReference - r ) ) +       
-                             ( ( yReference - c ) * ( yReference - c ) ) );
+              radius = sqrt( ( ( xReference - c ) * ( xReference - c ) ) +       
+                             ( ( yReference - r ) * ( yReference - r ) ) );
  
               //compute orientation of boundary point relative to centroid
-              alpha = atan2( ( (double)  yReference - c ) , ( (double)  xReference - r ) );
+              alpha = atan2( ( (double)  yReference - r ) , ( (double)  xReference - c ) );
  
               //convert alpha from radians to degrees
               alpha = ( alpha * 180 / PI  );
@@ -204,8 +203,8 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                {
                  // create new node
                  RtableEntry *temp = new (nothrow) RtableEntry;
-                 temp.radius = radius;
-                 temp.alpha = alpha;
+                 temp -> radius = radius;
+                 temp -> alpha = alpha;
                  temp -> next = NULL;
                 
                  /*Rtable[ ( int ) theta ]->radius = radius; // FIll R Table
@@ -227,11 +226,10 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                 // instantiate a temp entry for insertion into Rtable
                 RtableEntry *temp = new (nothrow) RtableEntry  ;  
                 
-                 //fill temp entry
-                temp.radius = radius;
-                temp.alpha = alpha;
+                //fill temp entry
+                temp -> radius = radius;
+                temp -> alpha = alpha;
                 
-
                 //RtableEntry *curr;
                 
                 temp -> next = Rtable[ (int) (theta+.5) ] -> next;
@@ -262,9 +260,11 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         float xCoord = 0.0; // x coordinate to index accumulator array
         float yCoord = 0.0; // y coordinate to index accumulator array
         
-    
-        // BUILD ACCUMULATOR ARRAY //
 
+
+/////////////////////////////////////////////////////////////////////    
+        // BUILD ACCUMULATOR ARRAY //
+/////////////////////////////////////////////////////////////////////
         for( int r = yReference; r < imageRows; r++ )
         {
           for( int c = xReference; c < imageCols; c++ )
@@ -286,17 +286,17 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
              {   
           //calculate the x and y coordinates for the position in the accumulator array to be incremented 
           // NOTE: Convert alpha to radians as cos and sin funcs expect radians for parameters              
-                 float alphaCos = ( cos( curr.alpha * PI/180 ) );
+                 float alphaCos = ( cos( curr->alpha * PI/180 ) );
                 // if( alphaCos < 0.0 ) // if cos value is negative, make it positive
                     //alphaCos *= -1.0;
 
-                 float alphaSin = ( sin( curr.alpha * PI/180 ) );
+                 float alphaSin = ( sin( curr->alpha * PI/180 ) );
                 // if( alphaSin < 0.0 ) //if sin value is negatvie, make it positive
                     //alphaSin *= -1.0;
 
-                 xCoord = ( r +  curr ->radius  * alphaCos  );  
+                 xCoord = ( c +  curr->radius  * alphaSin  );  
 
-                 yCoord = ( c + curr->radius * alphaSin );
+                 yCoord = ( r +  curr->radius * alphaCos );
          
                  cout << "current radius " << curr -> radius << "current alpha " << curr -> alpha << endl;
                  cout << "current row in image " << r << "current col in image " << c << endl;
@@ -305,11 +305,12 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                  cout << "GOING TO INCREMENT ACCUMULATOR " << endl;
 
  //////////////////SEGFAULTS HERE EVENTUALLY//////////////////////////////////////////
-                 accumulatorArray[ (int) (xCoord+.5)][(int) (yCoord+.5)] += 1; 
+                 accumulatorArray[(int)(yCoord+.5)][(int)(xCoord+.5)] += 1; 
                  
+                // cout << "NOT ACCUMULATOR" << endl;
                 // cout << accumulatorArray[190][103] << endl;
                 
-                 cout <<"Tally for spot at xy coords " <<  accumulatorArray[(int) (xCoord+.5)][(int)(yCoord+.5)] << endl;
+                 cout <<"Tally for spot at xy coords " <<  accumulatorArray[(int)(yCoord+.5)][(int) (xCoord+.5)] << endl;
                  cout << "theta " << theta << endl;
                  cout << "mask: " << name << endl;
                  
@@ -330,7 +331,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 
         
 
-    //Possible locatoins for the shape are given by maxima in accumulator array
+    //Possible locations for the shape are given by maxima in accumulator array
      // search for maxima in accumulator array
         for( int r = 0; r < imageRows; r++ )
         {
@@ -341,15 +342,17 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               max = accumulatorArray[r][c];
               colPos = c;
             }
-                
           }
         }
+
+    cout << max << endl;
+
 
      if ( numDetected == 0 )
      {
          plateCols[numDetected] = colPos;
          plateValues[numDetected] = maskValue[ML][0];
-         numDetected = 7;
+         //numDetected = 7;
 	 }   
 
      //save the matches in the array
@@ -368,6 +371,17 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
      if( numDetected >= 7 )
        return;
 
+
+
+    for( int i = 0; i < imageRows; i++ )
+    {
+        for ( int j = 0; j < imageCols; j++ )
+        {
+            XCorImg[i][j] = accumulatorArray[i][j];
+
+        }
+    }
+
      //displays the hough correlation in a new image for each mask
      CorImgLabel += maskValue[ML];
      displayImage(XCorImg, CorImgLabel);
@@ -376,24 +390,40 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
     // maybe do  more stuff with column position of possible object match
     //
 
+    //RtableEntry *curr;
+
+    ////////////////////////////////////////////////////////////////////
+    ///////////////////ERROR IS IN THIS FOR LOOP////////////////////////
+    ////////////////////////////////////////////////////////////////////
     // delete R table
-     for( int x = 0; x < 360; x++ )
-    {
-      RtableEntry * curr;
+  //  for( int x = 0; x < 1; x++ )
+  //  {
+  //    while( Rtable[x] -> next != NULL )
+  //    {
+  //      RtableEntry *curr;
 
+  //      curr = Rtable[x]-> next;
 
-      while( Rtable[x] != NULL )
-      {
-        curr = Rtable[x];
+  //      Rtable[x] -> next = curr -> next;
 
-        Rtable[x] = Rtable[x] -> next;
+  //      cout << curr << endl;
 
-        delete []curr;
-    
-
-      }// end while Rtable[x] != NULL 
+  //      delete []curr;
+  //    }// end while Rtable[x] != NULL 
       
-    }// end for x = 0 to 360, degree fills
+  //  }// end for x = 0 to 360, degree fills
+
+    ////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////
+
+
+ //temp -> next = Rtable[ (int) (theta+.5) ] -> next;
+   //             Rtable[ (int) (theta+.5)] -> next = temp;
+     //           delete [] temp;
+
+
+
+    cout << plateValues[0];
 
     //delete accumulator array
     for( int i = 0; i < imageRows; ++i )
@@ -403,7 +433,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
     }
     delete []accumulatorArray;
  
- 
+    return;
                    
         }// end version
 
