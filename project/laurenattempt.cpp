@@ -124,8 +124,8 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         //These are seperable, but using a 3x3 matrix
         int maskX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
         int maskY[9] = {1, 2, 1, 0, 0, 0, -1, -2, -1};
-        float sumX = 0;
-        float sumY = 0;
+        float sumX = 0.0;
+        float sumY = 0.0;
         //int i = 0;  // loop variable to index sobel masks
 
         Image magnitudeTemp( mask );
@@ -198,8 +198,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               else if( alpha > 360 ) // fit alpha in range 0 - 359 if too large
                 alpha = alpha - 360;
 
-             // alpha = (int) ( alpha + .5 ); // round alpha to nearest degree (is this needed? )
-                
+                             
                  RtableEntry *temp = new (nothrow) RtableEntry;
                  temp -> radius = radius;
                  temp -> alpha = alpha;
@@ -234,9 +233,9 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 /////////////////////////////////////////////////////////////////////    
         // BUILD ACCUMULATOR ARRAY //
 /////////////////////////////////////////////////////////////////////
-        for( int r = yReference; r < imageRows; r++ )
+        for( int r = 0; r < imageRows; r++ )
         {
-          for( int c = xReference; c < imageCols; c++ )
+          for( int c = 0; c < imageCols; c++ )
           {
             if( imageMagCopy[r][c] > threshold )  // if pixel is an edge pixel
             { int z = 0;
@@ -287,15 +286,19 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                  cout << "current row in image " << r << "current col in image " << c << endl;
                  cout << "xCoord " << xCoord << "yCoord " << yCoord << endl;
               
-                 cout << "GOING TO INCREMENT ACCUMULATOR " << endl;
+                // cout << "GOING TO INCREMENT ACCUMULATOR " << endl;
 
                  // if the calculated x and y coordinates are legal, increment accumulator array
-                 if( xCoord >= 0.0 && xCoord < imageCols && yCoord < imageRows && yCoord >= 0.0 ) 
-                   accumulatorArray[(int)(yCoord+.5)][(int)(xCoord+.5)] += 1; 
+                 if( xCoord >= 0.0 && xCoord < imageCols && yCoord < imageRows && yCoord >= 0.0 )
+                 {
+                  cout << "GOING TO INCREMENT ACCUMULATOR ARRAY" << endl;
+                  accumulatorArray[(int)(yCoord+.5)][(int)(xCoord+.5)] += 1; 
+                  cout <<"Tally for spot at xy coords " <<  accumulatorArray[(int)(yCoord+.5)][(int) (xCoord+.5)] << endl;
+
+                 }
                  
                                
-                 cout <<"Tally for spot at xy coords " <<  accumulatorArray[(int)(yCoord+.5)][(int) (xCoord+.5)] << endl;
-                 cout << "theta " << theta << endl;
+                                  cout << "theta " << theta << endl;
                  cout << "mask: " << name << endl;
                  
                  curr = curr -> next; //move down to the next pair of ( alpha, radius )
