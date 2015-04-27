@@ -99,7 +99,8 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         CorImgLabel = "Mask = "; // get name of current mask
   
         // read in template image from file
-        string name = "../images/templates/" + maskValue[ML] + "/" + maskValue[ML] + maskVersion[MV] + ".JPG";
+        string name = "../images/templates/" + maskValue[ML] + "/" + 
+                           maskValue[ML] + maskVersion[MV] + ".JPG";
         Image mask( name );
 
         //check for template data
@@ -190,14 +191,14 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               alpha = atan2( ( (double)  yReference - r ) , ( (double)  xReference - c ) );
  
               //convert alpha from radians to degrees
-              alpha = ( alpha * 180 / PI  );
+              alpha = ( alpha * 180.0 / PI  );
     
-              if( alpha < 0 ) // make alpha positive if it is negative
-                alpha += 360;
+              if( alpha < 0.0 ) // make alpha positive if it is negative
+                alpha += 360.0;
               else if( alpha > 360 ) // fit alpha in range 0 - 359 if too large
                 alpha = alpha - 360;
 
-              alpha = (int) ( alpha + .5 ); // round alpha to nearest degree (is this needed? )
+             // alpha = (int) ( alpha + .5 ); // round alpha to nearest degree (is this needed? )
                 
                  RtableEntry *temp = new (nothrow) RtableEntry;
                  temp -> radius = radius;
@@ -336,19 +337,19 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
          plateCols[numDetected] = colPos;
          plateValues[numDetected] = maskValue[ML][0];
          //numDetected = 7;
-	 }   
+     }   
 
      //save the matches in the array
-	 else 
-	 {
+      else 
+      {
         //checks if the template match is within 75 pixels, to eliminate redundant matches
         if ( abs( colPos - plateCols[numDetected-1] ) > 75 )
-	    {   
+	{   
 		     plateCols[numDetected] = colPos; // save column locaction of possible match
 	         plateValues[numDetected] = maskValue[ML][0]; // save mask character processed
              numDetected = numDetected + 1; // increment the number of found characters
-	    }
-	  }
+	 }
+      }
         cout << "Made it here--------------------------------------------------------------" << endl;
           //exits the processing of the plate image if 7 characters are already found
      if( numDetected >= 7 )
@@ -379,7 +380,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 
         curr = Rtable[x];
 
-        Rtable[x] -> next = curr -> next;
+        Rtable[x] = Rtable[x] -> next;
 
        // cout << curr << endl;
 
