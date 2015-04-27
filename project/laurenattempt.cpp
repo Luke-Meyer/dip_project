@@ -54,17 +54,8 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
     int yReference = 0; // y coord of reference point in template
     float count = 0.0; // used to compute reference point in mask 
 
-    RtableEntry *Rtable[361] = {0}; // R table with a resolution of 360 degrees 
-   
-	//for ( int i = 0; i < 360; i++ )
-		//Rtable[i].next = NULL;
-    /*for( int i = 0; i < 360; i++ )
-    {  
-       Rtable[i] = new (nothrow) RtableEntry;
-       Rtable[i] -> next = NULL;   
-    }  */
-    
-   // Rtable = new (nothrow) RtableEntry * [360]; 
+    RtableEntry *Rtable[360] = {0}; // R table with a resolution of 360 degrees 
+  
     
     int threshold = 230; // threshold needed for R-tabel computation( defines edge pixel )
 
@@ -130,20 +121,17 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         float theta = 0.0; // angle between x axis and radius of centroid to boundary
         //create filter mask matrix
         //These are seperable, but using a 3x3 matrix
-        //int maskX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
-        //int maskY[9] = {1, 2, 1, 0, 0, 0, -1, -2, -1};
-        //float sumX = 0;
-        //float sumY = 0;
+        int maskX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
+        int maskY[9] = {1, 2, 1, 0, 0, 0, -1, -2, -1};
+        float sumX = 0;
+        float sumY = 0;
         //int i = 0;  // loop variable to index sobel masks
 
         Image magnitudeTemp( mask );
-        Image directionTemp( mask );
-
+       
         // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN TEMPLATE IMAGE //
         sobelMagnitude( magnitudeTemp );  
-        //compute gradient direction for each pixel in template image
-        sobelDirection( directionTemp );
-        
+               
         
     //DETERMINE CENTRIOD OF TEMPLATE IMAGE //  
         for( int y = 0; y < maskRows; y++ ) 
@@ -167,15 +155,31 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         for( int r = 0; r < maskRows; r++ )
         {
           for( int c = 0; c < maskCols; c++ )
-          {
+          { int z = 0; // initialize important variables for calculation
+            sumX = 0.0;
+            sumY = 0.0;
             if( magnitudeTemp[r][c] > threshold )
-            {  //NEED TO CALCULATE MANUALLY
-                             
-              theta = directionTemp[r][c]; // calculate theta
+            {  
+              //calculate theta for this edge pixel
+              for( int i = 0; i < 3; i++ )
+              {
+                for( int j = 0; j < 3; j++ )
+                {
+                  sumX += maskX[z] * magnitudeTemp[i][j];
+                  sumY += maskY[z] * magnitudeTemp[i][j];
+                  z++;
+                    
+                }
 
-              //convert theta from radians to degrees
-              //theta = ( theta * 180 / PI  );
-              
+              }               
+              theta = atan2( (double) sumY, (double) sumX ); // calculate theta
+              theta = theta * 180 / PI; // convert from radians to degrees
+
+              if( theta < 0 ) // if theta is negative, put into positive 0 - 360 range
+                theta += 360;
+              else if( theta > 360 )// if, somehow, theta is too large, put into 0 - 360 range
+                theta = theta - 360; 
+             
               cout << "theta " << theta << endl;
                                   
               //compute radius from centroid to boundary point
@@ -193,39 +197,16 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               else if( alpha > 360 ) // fit alpha in range 0 - 359 if too large
                 alpha = alpha - 360;
 
-              alpha = (int) ( alpha + .5 );//%180; // fit alpha into 0 - 179 range
-              //if( alpha > 90.0 && alpha < 180.0 )
-                //alpha = alpha + 180.0; // set alpha
- 
+              alpha = (int) ( alpha + .5 ); // round alpha to nearest degree (is this needed? )
                 
-               // insert ( alpha, radius) pair into R table using theta as an index
-             //  cout << "JUST OUTSIDE" << endl;
-              // if( Rtable[ (int) ( theta + .5 ) ] -> next == NULL ) 
-              // {
-                 // create new node
                  RtableEntry *temp = new (nothrow) RtableEntry;
                  temp -> radius = radius;
                  temp -> alpha = alpha;
                  temp -> next =  Rtable[ (int) (theta+.5) ] ;
                 
-                 /*Rtable[ ( int ) theta ]->radius = radius; // FIll R Table
-                 cout << "First radius " << Rtable[(int)theta]->radius << endl;
-                 Rtable[ ( int ) theta ]->alpha = alpha;
-                 cout << "First alpha " << Rtable[(int)theta]->alpha << endl;
-                  Rtable[ ( int ) theta ]->count += 1;
-                  */
-                  // 
-                  Rtable[ (int) (theta+.5) ] = temp;
+                 Rtable[ (int) (theta+.5) ] = temp;
                   
-              // }
-              
-              // if there is one other (alpha,radius) pair for this theta
-             // else 
-              // {
-                               //cout << "temp data " << temp -> radius << " " << temp -> alpha << " "<< endl;
-  
-               // } // end else 
-          
+                      
               } // end threshold magnitude
 
             } // end template columns
@@ -238,15 +219,15 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN IMAGE //
 
         Image imageMagCopy = image; // make copy of image to ensure data integrity
-        Image imageDirCopy = image;
+       // Image imageDirCopy = image;
 
         sobelMagnitude( imageMagCopy ); // apply sobel edge magnitude operation to image copy
         
-        sobelDirection( imageDirCopy ); //apply sobel edge direction operation to image copy
+       // sobelDirection( imageDirCopy ); //apply sobel edge direction operation to image copy
     
         float xCoord = 0.0; // x coordinate to index accumulator array
         float yCoord = 0.0; // y coordinate to index accumulator array
-        
+         
 
 
 /////////////////////////////////////////////////////////////////////    
@@ -257,15 +238,33 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
           for( int c = xReference; c < imageCols; c++ )
           {
             if( imageMagCopy[r][c] > threshold )  // if pixel is an edge pixel
-            {
+            { int z = 0;
+              sumX = 0.0;
+              sumY = 0.0;
               cout << "Building accumulator array" << endl;
+              
+              //Calculate theta for current edge pixel
+              for( int i = 0; i < 3; i++ )
+              {
+                for( int j = 0; j < 3; j++ )
+                {
+                  sumX += maskX[z] * magnitudeTemp[i][j];
+                  sumY += maskY[z] * magnitudeTemp[i][j];
+                  z++;
+                    
+                }
 
-              //NEED TO CALCULATE MANUALLY
-              theta = imageDirCopy[r][c];
+              }               
+              theta = atan2( (double) sumY, (double) sumX ); // calculate theta
+              theta = theta * 180 / PI; // convert from radians to degrees
+
+              if( theta < 0 ) // if theta is negative, put into positive 0 - 360 range
+                theta += 360;
+              else if( theta > 360 )// if, somehow, theta is too large, put into 0 - 360 range
+                theta = theta - 360; 
               cout << "theta " << theta << endl;
 
-              //if( theta < 0 )  // convert to positive radians if theta is negative
-              //    theta = ( theta + 2 * PI );                                  
+                                         
                 
               // set interator to proper theta index in R table
               curr = Rtable [ (int) ( theta +.5) ]; 
@@ -276,19 +275,12 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
           //calculate the x and y coordinates for the position in the accumulator array to be incremented 
           // NOTE: Convert alpha to radians as cos and sin funcs expect radians for parameters              
                  float alphaCos = ( cos( curr->alpha * PI/180 ) );
-                // if( alphaCos < 0.0 ) // if cos value is negative, make it positive
-                    //alphaCos *= -1.0;
-
+                
                  float alphaSin = ( sin( curr->alpha * PI/180 ) );
-                // if( alphaSin < 0.0 ) //if sin value is negatvie, make it positive
-                    //alphaSin *= -1.0;
-
+                
                  xCoord = ( c +  curr->radius  * alphaSin  );  
 
-                 yCoord = ( r +  curr->radius * alphaCos );
-
-                 
-                   
+                 yCoord = ( r +  curr->radius * alphaCos );                   
          
                  cout << "current radius " << curr -> radius << "current alpha " << curr -> alpha << endl;
                  cout << "current row in image " << r << "current col in image " << c << endl;
@@ -296,13 +288,11 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               
                  cout << "GOING TO INCREMENT ACCUMULATOR " << endl;
 
- //////////////////SEGFAULTS HERE EVENTUALLY//////////////////////////////////////////
-                 if( xCoord >= 0.0 && xCoord < imageCols && yCoord < imageRows yCoord >= 0.0 )               
+                 // if the calculated x and y coordinates are legal, increment accumulator array
+                 if( xCoord >= 0.0 && xCoord < imageCols && yCoord < imageRows && yCoord >= 0.0 ) 
                    accumulatorArray[(int)(yCoord+.5)][(int)(xCoord+.5)] += 1; 
                  
-                // cout << "NOT ACCUMULATOR" << endl;
-                // cout << accumulatorArray[190][103] << endl;
-                
+                               
                  cout <<"Tally for spot at xy coords " <<  accumulatorArray[(int)(yCoord+.5)][(int) (xCoord+.5)] << endl;
                  cout << "theta " << theta << endl;
                  cout << "mask: " << name << endl;
@@ -380,48 +370,32 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
      displayImage(XCorImg, CorImgLabel);
                
 
-    // maybe do  more stuff with column position of possible object match
-    //
+           // delete R table
+    for( int x = 0; x < 360; x++ )
+    {
+      while( Rtable[x] != NULL )
+      {
+        //RtableEntry *curr;
 
-    //RtableEntry *curr;
+        curr = Rtable[x];
 
-    ////////////////////////////////////////////////////////////////////
-    ///////////////////ERROR IS IN THIS FOR LOOP////////////////////////
-    ////////////////////////////////////////////////////////////////////
-    // delete R table
-  //  for( int x = 0; x < 1; x++ )
-  //  {
-  //    while( Rtable[x] -> next != NULL )
-  //    {
-  //      RtableEntry *curr;
+        Rtable[x] -> next = curr -> next;
 
-  //      curr = Rtable[x]-> next;
+       // cout << curr << endl;
 
-  //      Rtable[x] -> next = curr -> next;
-
-  //      cout << curr << endl;
-
-  //      delete []curr;
-  //    }// end while Rtable[x] != NULL 
+        delete curr;
+      }// end while Rtable[x] != NULL 
       
-  //  }// end for x = 0 to 360, degree fills
+    }// end for x = 0 to 360, degree fills
 
-    ////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////
-
-
- //temp -> next = Rtable[ (int) (theta+.5) ] -> next;
-   //             Rtable[ (int) (theta+.5)] -> next = temp;
-     //           delete [] temp;
-
-
+   
 
     cout << plateValues[0];
 
     //delete accumulator array
     for( int i = 0; i < imageRows; ++i )
     {
-       delete [] accumulatorArray[i]; 
+       delete []accumulatorArray[i]; 
 
     }
     delete []accumulatorArray;
