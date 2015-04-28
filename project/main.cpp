@@ -57,10 +57,11 @@
                   add our menu items with the corresponding algorithms.
                   
  ************************************************************************/
+ 
 #include "main.h"
 
 /*************************************************************************
-   Function: main
+   Function: Main
    Author: Dr. Weiss
    Description: this function invokes the QT program
    Parameters: argc[in] - Number of arguments passed in

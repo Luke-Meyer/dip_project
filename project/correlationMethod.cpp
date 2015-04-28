@@ -4,12 +4,15 @@
 #include <algorithm>
 /*************************************************************************
    Function:   Extraction - Correlation Coefficient
+   
    Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
+   
    Description: this function will set up all elements required to
                 extract a sequence of alphanumeric characters from a
                 licence plate and call the functions
                 correlationExtraction and orderPlateValues in order to 
                 implement the template matching portion of the project
+                
    Parameters: image[in/out] - Image to be matched using templates
  ************************************************************************/
 bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )  
@@ -46,7 +49,9 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )
 
 /*************************************************************************
    Function: Correlation Extraction
+   
    Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
+   
    Description: This function will be extract all character values that 
                 give a template correlation of over 70%. Each match
                 will have its atributes stored within a system of arrays
@@ -56,6 +61,7 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )
                 and the previous match removed from the array. 
                 After completion of extraction, results will be returned
                 to the Extraction - Correlation Coefficient function.
+                
    Parameters:  image[in/out] - image to have characters extraced from
                 plateValues[in/out] - list of plate characters detected
                 plateCols[in/out] - list of character positions by column
@@ -86,201 +92,204 @@ void MyApp::correlationExtraction( Image &image, char plateValues[], int plateCo
                            "K", "M", "N", "O", "P", "Q", "R", "S", 
                            "U", "V", "W", "X", "Y", "Z", "T", "L", "I", "1" };
     
-/*---loop through all mask templates---*/
-for( int ML = 0; ML < 36; ML++)
-{
-    /*---loop through all mask versions---*/
-    for ( int MV = 0; MV < 5; MV++)
+    /*---loop through all mask templates---*/
+    for( int maskLoop = 0; maskLoop < 36; maskLoop++)
     {
-        //sets string for new correlated values image
-        CorImgLabel = "Mask = "; 
-       
-        /*---Read in a template from file---*/
-        string name = "../images/templates/" + maskValue[ML] + "/" + maskValue[ML] + maskVersion[MV] + ".JPG";
-
-        //string name = maskValue[ML] + "/" + maskValue[ML] + maskVersion[MV] + ".JPG";
-        Image mask( name );
-
-        //checks if the image is valid
-        if ( mask.IsNull() )
+        /*---loop through all mask versions---*/
+        for ( int mvLoop = 0; mvLoop < 5; mvLoop++)
         {
-            continue;   //go to next template if image is invalid
-        }   
+            //sets string for new correlated values image
+            CorImgLabel = "Mask = "; 
+           
+            /*---Read in a template from file---*/
+            string name = "../images/templates/" + maskValue[maskLoop] + "/" + maskValue[maskLoop] + maskVersion[mvLoop] + ".JPG";
 
-        //Prints to the cosole what mask is being processed
-        cout << "Running Mask: " << maskValue[ML] + maskVersion[MV] << endl;
+            //string name = maskValue[maskLoop] + "/" + maskValue[maskLoop] + maskVersion[mvLoop] + ".JPG";
+            Image mask( name );
 
-        //gets current mask values
-        maskRow = mask.Height();
-        maskCol = mask.Width();
-        maskSize = (maskRow * maskCol);
-
-        //copies the current image to write the correlated values to later
-        Image XCorImg( image );
-        XCorImg.Fill(Pixel(0,0,0));
-
-        /*---compute maskAverage for specific mask used---*/
-        for ( int i = 0; i < maskRow; i++ )
-        {
-            for( int j = 0; j < maskCol; j++ )
+            //checks if the image is valid
+            if ( mask.IsNull() )
             {
-              maskAverage += mask[i][j]; //sum all the values in the mask
+                continue;   //go to next template if image is invalid
+            }   
+
+            //Prints to the cosole what mask is being processed
+            cout << "Running Mask: " << maskValue[maskLoop] + maskVersion[mvLoop] << endl;
+
+            //gets current mask values
+            maskRow = mask.Height();
+            maskCol = mask.Width();
+            maskSize = (maskRow * maskCol);
+
+            //copies the current image to write the correlated values to later
+            Image XCorImg( image );
+            XCorImg.Fill(Pixel(0,0,0));
+
+            /*---compute maskAverage for specific mask used---*/
+            for ( int i = 0; i < maskRow; i++ )
+            {
+                for( int j = 0; j < maskCol; j++ )
+                {
+                  maskAverage += mask[i][j]; //sum all the values in the mask
+                }
             }
-        }
 
-        maskAverage /= maskSize; //average the sum by dividing the num elements in mask
-        
-        /*---loops through image and applies correlation algorithm---*/
-        for ( int r = 0; r < (nrows - maskRow); r++ )
-        {
-            for ( int c = 0; c < (ncols - maskCol); c++ )
-            {        
-                //---precompute ImgNeighborhoodAvg which is size of template---
-                for ( int i = 0; i < maskRow; i++ )
-                {
-                    for( int j = 0; j < maskCol; j++ )
+            maskAverage /= maskSize; //average the sum by dividing the num elements in mask
+            
+            /*---loops through image and applies correlation algorithm---*/
+            for ( int r = 0; r < (nrows - maskRow); r++ )
+            {
+                for ( int c = 0; c < (ncols - maskCol); c++ )
+                {        
+                    //---precompute ImgNeighborhoodAvg which is size of template---
+                    for ( int i = 0; i < maskRow; i++ )
                     {
-                        ImgNeighborhoodAvg += image[r+i][c+j]; //sum the intensity values in the neighborhood
-                    }
-                }
-
-                ImgNeighborhoodAvg /= maskSize; //divides the average by the number of mask elements (since mask size = neighborhood size)
-   
-                //---loops through each mask and apply the correlation algorithm---
-                for ( int x = 0; x < maskRow; x++ )
-                {
-                    for ( int y = 0; y < maskCol; y++ )
-                    {
-                        //compute numerator
-                        numeratorSum += ((mask[x][y] - maskAverage) * (image[r+x][c+y] - ImgNeighborhoodAvg));
-                        
-                        //computes each section of the denominator seperately
-                        denominator1 += ((mask[x][y] - maskAverage) * ( mask[x][y] - maskAverage ));
-                        denominator2 += ((image[r+x][c+y] - ImgNeighborhoodAvg) * ( image[r+x][c+y] - ImgNeighborhoodAvg ));
-                    }
-                }
-
-                //compute denominator
-                denominatorSum = sqrt(denominator1 * denominator2); 
-                                                
-                //check for divide by 0 error
-                if (denominatorSum == 0.0)
-                    correlation = 0.0; //set correlation to zero if dvision by is to occur (semi arbitrarily )
-                
-                else //calculates correlation
-                    correlation = (numeratorSum/denominatorSum);
-
-                //sets the correlation image with the found correlated values
-                XCorImg[r][c].SetGray(abs((int)(correlation * 255)));
-                
-                //determines positive match with image and template
-                if (correlation >= 0.7)
-                {
-                    cout << correlation << endl;
-
-                    //save the column position and mask value to the 2D array
-                    //if list is empty 
-                    if ( numDetected == 0 )
-                    {
-                        plateCols[0] = c;
-                        plateValues[0] = maskValue[ML][0];
-                        corrArr[0] = correlation;
-                        numDetected = 1;
-                        cout << "Added to Plate." << endl;
-                    }
-   
-                    else //save the matches in the array
-                    {
-                        // for each item on the plate found
-                        for ( int val = 0; val < numDetected; val++ )
+                        for( int j = 0; j < maskCol; j++ )
                         {
-                            // if the new found character is within a given distance to an old character
-                            if( abs( c - plateCols[val] ) < (maskCol/1.25))
-                            {
-                                // and if the new correlation is higher than the old correlation
-                                if (correlation > corrArr[val])
-                                {
-                                    // replace logged character on plate for new character
-                                    cout << "item replaced on plate" << endl;
-                                    cout << "old correlation: " << corrArr[val] << "\tnew correlation: " << correlation<< endl; 
-                                    plateCols[val] = c;
-                                    valFound = true;
-                                    plateValues[val] = maskValue[ML][0];
-                                    corrArr[val] = correlation; 
-                                }
-                                // turn check to false
-                                check = false;
-                                //cout << check << endl;
-                            }
+                            ImgNeighborhoodAvg += image[r+i][c+j]; //sum the intensity values in the neighborhood
                         }
+                    }
 
-                        // if the new character fell further away from the half distance
-                        // and there has been fewer than 7 characters found
-                        if ( check == true && numDetected < 7 )
+                    ImgNeighborhoodAvg /= maskSize; //divides the average by the number of mask elements (since mask size = neighborhood size)
+       
+                    //---loops through each mask and apply the correlation algorithm---
+                    for ( int x = 0; x < maskRow; x++ )
+                    {
+                        for ( int y = 0; y < maskCol; y++ )
                         {
-                            // push new character to log
-                            plateCols[numDetected] = c;
-                            plateValues[numDetected] = maskValue[ML][0];
-                            corrArr[numDetected] = correlation;
-                            numDetected = numDetected + 1;
+                            //compute numerator
+                            numeratorSum += ((mask[x][y] - maskAverage) * (image[r+x][c+y] - ImgNeighborhoodAvg));
+                            
+                            //computes each section of the denominator seperately
+                            denominator1 += ((mask[x][y] - maskAverage) * ( mask[x][y] - maskAverage ));
+                            denominator2 += ((image[r+x][c+y] - ImgNeighborhoodAvg) * ( image[r+x][c+y] - ImgNeighborhoodAvg ));
+                        }
+                    }
+
+                    //compute denominator
+                    denominatorSum = sqrt(denominator1 * denominator2); 
+                                                    
+                    //check for divide by 0 error
+                    if (denominatorSum == 0.0)
+                        correlation = 0.0; //set correlation to zero if dvision by is to occur (semi arbitrarily )
+                    
+                    else //calculates correlation
+                        correlation = (numeratorSum/denominatorSum);
+
+                    //sets the correlation image with the found correlated values
+                    XCorImg[r][c].SetGray(abs((int)(correlation * 255)));
+                    
+                    //determines positive match with image and template
+                    if (correlation >= 0.7)
+                    {
+                        cout << correlation << endl;
+
+                        //save the column position and mask value to the 2D array
+                        //if list is empty 
+                        if ( numDetected == 0 )
+                        {
+                            plateCols[0] = c;
+                            plateValues[0] = maskValue[maskLoop][0];
+                            corrArr[0] = correlation;
+                            numDetected = 1;
                             cout << "Added to Plate." << endl;
-                            valFound = true;
                         }
-                        // turn check on again
-                        check = true;
+       
+                        else //save the matches in the array
+                        {
+                            // for each item on the plate found
+                            for ( int val = 0; val < numDetected; val++ )
+                            {
+                                // if the new found character is within a given distance to an old character
+                                if( abs( c - plateCols[val] ) < (maskCol/1.25))
+                                {
+                                    // and if the new correlation is higher than the old correlation
+                                    if (correlation > corrArr[val])
+                                    {
+                                        // replace logged character on plate for new character
+                                        cout << "item replaced on plate" << endl;
+                                        cout << "old correlation: " << corrArr[val] << "\tnew correlation: " << correlation << endl; 
+                                        plateCols[val] = c;
+                                        valFound = true;
+                                        plateValues[val] = maskValue[maskLoop][0];
+                                        corrArr[val] = correlation; 
+                                    }
+                                    // turn check to false
+                                    check = false;
+                                    //cout << check << endl;
+                                }
+                            }
 
-                    }// end save match in array
+                            // if the new character fell further away from the half distance
+                            // and there has been fewer than 7 characters found
+                            if ( check == true && numDetected < 7 )
+                            {
+                                // push new character to log
+                                plateCols[numDetected] = c;
+                                plateValues[numDetected] = maskValue[maskLoop][0];
+                                corrArr[numDetected] = correlation;
+                                numDetected = numDetected + 1;
+                                cout << "Added to Plate." << endl;
+                                valFound = true;
+                            }
+                            // turn check on again
+                            check = true;
 
-                }// end correlation over 70
+                        }// end save match in array
 
-                //resets the variables for next run through
-                numeratorSum = 0.0;
-                denominatorSum = 0.0;
-                denominator1 = 0.0;
-                denominator2 = 0.0;
-                correlation = 0.0;
-                ImgNeighborhoodAvg = 0;
+                    }// end correlation over 70
 
-            }// end column parse
+                    //resets the variables for next run through
+                    numeratorSum = 0.0;
+                    denominatorSum = 0.0;
+                    denominator1 = 0.0;
+                    denominator2 = 0.0;
+                    correlation = 0.0;
+                    ImgNeighborhoodAvg = 0;
 
-        }// end row parse
+                }// end column parse
 
-        if ( valFound )
-        {
-            //displays the correlation coefficients in a new image for each mask
-            CorImgLabel += maskValue[ML];
-            displayImage(XCorImg, CorImgLabel);
-            valFound = false;
-        }
-        maskAverage = 0.0;   //reset the mask average
-        maskSize = 0;
+            }// end row parse
 
-    }// end version loop
+            if ( valFound )
+            {
+                //displays the correlation coefficients in a new image for each mask
+                CorImgLabel += maskValue[maskLoop];
+                displayImage(XCorImg, CorImgLabel);
+                valFound = false;
+            }
+            maskAverage = 0.0;   //reset the mask average
+            maskSize = 0;
 
-}// end mask loop
-                                       
+        }// end version loop
+
+    }// end mask loop
+                                           
 }// end function
 
-/*************************************************************************
+/*************************************************************************************
    Function: Order Plate Values
+   
    Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
+   
    Description: this function will sort the characters detected on the 
                 plate in function correlationExtraction using their 
                 column positions. It will also print these results 
                 to screen, along with the time elapsed, for the user. 
+                
    Parameters:  plateValues[in/out] - plate characters found on license
                                      plate using correlationExtraction
                 plateCols[in/out] - column positoin of characters found
                 timeElapse[in] - the time it took to analyze full plate
- ************************************************************************/
+ *************************************************************************************/
 void MyApp::orderPlateValues( char plateValues[], int plateCols[], double timeElapse )
 {
-        ostringstream convertTime;
-        convertTime << timeElapse/60;
-        Image textbox(100, 400);
-        textbox.Fill(Pixel(0,0,0));
+    ostringstream convertTime;
+    convertTime << timeElapse/60;
+    Image textbox(100, 400);
+    textbox.Fill(Pixel(0,0,0));
 
-        string message = "";
+    string message = "";
     char license[7] = {'&'};
     int positions[7] = { plateCols[0], plateCols[1], plateCols[2], plateCols[3], 
                          plateCols[4], plateCols[5], plateCols[6] };
@@ -304,17 +313,15 @@ void MyApp::orderPlateValues( char plateValues[], int plateCols[], double timeEl
     message += "Plate Values: ";
     // For each character on the plate, push back the message to include it
     for ( int p = 0; p < 7; p++ )
-        {
-                message.push_back( license[p] );
-        }
+    {
+        message.push_back( license[p] );
+    }
 
     // Send the message to screen in a small image called "textbox"        
-        textbox.DrawText( 10, 70, message, Pixel(255, 255, 255));        
+    textbox.DrawText( 10, 70, message, Pixel(255, 255, 255));        
 
     // begin on a new message for the time elapsed
-        message = "Time Elapsed: " + convertTime.str() + " minutes";
-
-        textbox.DrawText(10, 50, message, Pixel(255, 255, 255));
-
-        displayImage(textbox, "Sequence Extracted");
+    message = "Time Elapsed: " + convertTime.str() + " minutes";
+    textbox.DrawText(10, 50, message, Pixel(255, 255, 255));
+    displayImage(textbox, "Sequence Extracted");
 }

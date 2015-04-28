@@ -1,10 +1,11 @@
-/*************************************************************************
+/****************************************************************************************
    Class:  This class establishes the menu items and and supplemental
            functions necessary in the program.
    Author: Dr. Weiss
+   Modified: Kayhan, Lauren, Luke
    Date:   Spring 2015
    Course: SDSM&T CSC442/542 DIP
- ************************************************************************/
+ ****************************************************************************************/
 
 #ifndef _MAIN_H
 #define _MAIN_H
@@ -29,6 +30,10 @@ class MyApp : public QObject
     void correlationExtraction( Image &image, char plateValues[], int plateCols[]);
     void houghExtraction( Image &image, char plaveValues[], int plateCols[] );
     void orderPlateValues( char plateValues[], int plateCols[], double timeElapse );
+    void buildRtable( struct RtableEntry *Rtable[], Image &magnitudeTemp, int threshold, int maskRows, int maskCols, int maskX[], int maskY[], int xReference, int yReference );
+    void buildAccumulator( int &colPos, int imageRows, int imageCols, Image &imageMagCopy, int threshold, int maskX[], int maskY[], struct RtableEntry *Rtable[], struct RtableEntry *curr, Image &accumulatorArray );
+    void cleanRtable( struct RtableEntry *Rtable[], struct RtableEntry *curr );
+
 
   public slots:
     bool Menu_Palette_Negate( Image & );
