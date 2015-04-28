@@ -139,7 +139,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         {
           for( int x = 0; x < maskCols; x++ )
           {
-            if( magnitudeTemp[x][y] > threshold )
+            if( magnitudeTemp[y][x] > threshold )
             {
               xReference += x;
               yReference += y;
