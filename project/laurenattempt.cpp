@@ -151,37 +151,42 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
         xReference /= count;  // finish computing the centroid point
         yReference /= count;
 
-    
+        
         //Build R-table
-        for( int r = 0; r < maskRows; r++ )
+        for( int r = 1; r < maskRows - 1; r++ )
         {
-          for( int c = 0; c < maskCols; c++ )
+          for( int c = 1; c < maskCols - 1; c++ )
           { int z = 0; // initialize important variables for calculation
             sumX = 0.0;
             sumY = 0.0;
+            int rbound = r - 1;
+            int cbound = c - 1;
+            int num = 1;
             if( magnitudeTemp[r][c] > threshold )
             {  
               //calculate theta for this edge pixel
-              for( int i = 0; i < 3; i++ )
+              for( int i = r-1; i < (3+rbound); i++ )
               {
-                for( int j = 0; j < 3; j++ )
+                for( int j = c-1; j < (3+cbound); j++ )
                 {
+                  cout << num << endl;
                   sumX += maskX[z] * magnitudeTemp[i][j];
                   sumY += maskY[z] * magnitudeTemp[i][j];
                   z++;
+                  num++;
                     
                 }
 
               }               
               theta = atan2( (double) sumY, (double) sumX ); // calculate theta
               theta = theta * 180 / PI; // convert from radians to degrees
-
+              
               if( theta < 0 ) // if theta is negative, put into positive 0 - 360 range
                 theta += 360;
               else if( theta > 360 )// if, somehow, theta is too large, put into 0 - 360 range
                 theta = theta - 360; 
              
-              cout << "theta " << theta << endl;
+              //cout << "theta " << theta << endl;
                                   
               //compute radius from centroid to boundary point
               radius = sqrt( ( ( xReference - c ) * ( xReference - c ) ) +       
@@ -198,14 +203,14 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
               else if( alpha > 360 ) // fit alpha in range 0 - 359 if too large
                 alpha = alpha - 360;
 
-                             
+                // cout << theta << endl;            
                  RtableEntry *temp = new (nothrow) RtableEntry;
                  temp -> radius = radius;
                  temp -> alpha = alpha;
                  temp -> next =  Rtable[ (int) (theta+.5) ] ;
                 
                  Rtable[ (int) (theta+.5) ] = temp;
-                  
+                 cout << "here" << endl;
                       
               } // end threshold magnitude
 
@@ -214,7 +219,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
           } // end template rows
 
               cout << "BUILT R TABLE" << endl;     
- 
+     
         
         // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN IMAGE //
 
@@ -233,20 +238,22 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 /////////////////////////////////////////////////////////////////////    
         // BUILD ACCUMULATOR ARRAY //
 /////////////////////////////////////////////////////////////////////
-        for( int r = 0; r < imageRows; r++ )
+        for( int r = 1; r < imageRows - 1; r++ )
         {
-          for( int c = 0; c < imageCols; c++ )
+          for( int c = 1; c < imageCols - 1; c++ )
           {
             if( imageMagCopy[r][c] > threshold )  // if pixel is an edge pixel
             { int z = 0;
               sumX = 0.0;
               sumY = 0.0;
+              int rbound = r -1;
+              int cbound = c-1;
               cout << "Building accumulator array" << endl;
               
               //Calculate theta for current edge pixel
-              for( int i = 0; i < 3; i++ )
+              for( int i = r-1; i < ( 3+rbound ) ; i++ )
               {
-                for( int j = 0; j < 3; j++ )
+                for( int j = c-1; j < ( 3+cbound ); j++ )
                 {
                   sumX += maskX[z] * magnitudeTemp[i][j];
                   sumY += maskY[z] * magnitudeTemp[i][j];
@@ -293,12 +300,12 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                  {
                   cout << "GOING TO INCREMENT ACCUMULATOR ARRAY" << endl;
                   accumulatorArray[(int)(yCoord+.5)][(int)(xCoord+.5)] += 1; 
-                  cout <<"Tally for spot at xy coords " <<  accumulatorArray[(int)(yCoord+.5)][(int) (xCoord+.5)] << endl;
+                 // cout <<"Tally for spot at xy coords " <<  accumulatorArray[(int)(yCoord+.5)][(int) (xCoord+.5)] << endl;
 
                  }
                  
                                
-                                  cout << "theta " << theta << endl;
+                 cout << "theta " << theta << endl;
                  cout << "mask: " << name << endl;
                  
                  curr = curr -> next; //move down to the next pair of ( alpha, radius )
