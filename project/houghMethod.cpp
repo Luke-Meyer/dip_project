@@ -145,7 +145,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
             buildRtable( Rtable, magnitudeTemp, maskRows, maskCols, xReference, yReference, nodes );
             
             //DEBUG//
-            /*for(int i = 0; i < 360; i++)
+            for(int i = 0; i < 360; i++)
             {
                 cout << i << " = " << Rtable[i] << "      ";
                 if(Rtable[i] != NULL)
@@ -161,7 +161,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                     cout << endl;
                 }
                 cout << endl;
-            }*/          
+            }          
             
             // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN IMAGE //
             Image imageMag( image ); // make copy of image to ensure data integrity
@@ -422,13 +422,13 @@ void MyApp::buildAccumulator( int imageRows, int imageCols, Image &imageMag, str
                     int neighborBoundY = yCoord + .5;
                     int neighborBoundX = xCoord + .5;  
                     
-                    //INCREMENT ACCUMULATOR ARRAY IN 5X5 NEIGHBORHOOD
-                    for(int i = (neighborBoundY - 2); i < (neighborBoundY + 3); i++)
+                    //INCREMENT ACCUMULATOR ARRAY IN 7X7 NEIGHBORHOOD
+                    for(int i = (neighborBoundY - 4); i < (neighborBoundY + 4); i++)
                     {
-                        for(int j = (neighborBoundX - 2); j < (neighborBoundX + 3); j++)
+                        for(int j = (neighborBoundX - 4); j < (neighborBoundX + 4); j++)
                         {
                             // if the calculated x and y coordinates are legal, increment accumulator array
-                            if( i >= 0 && i <= (imageRows - 2) && j >= 0 && j <= (imageCols - 2) )
+                            if( i >= 0 && i <= (imageRows - 4) && j >= 0 && j <= (imageCols - 4) )
                             {
                                 accumulatorArray[i][j] = accumulatorArray[i][j] + 1; 
                             }
