@@ -32,7 +32,7 @@ class MyApp : public QObject
     void orderPlateValues( char plateValues[], int plateCols[], double timeElapse );
     void buildRtable( struct RtableEntry *Rtable[], Image &magnitudeTemp, int maskRows, int maskCols, int xReference, int yReference, int &nodes );
     void buildAccumulator( int imageRows, int imageCols, Image &imageMag, struct RtableEntry *Rtable[], int numDetected, int nodes, 
-                           int plateCols[], char plateValues[], char maskVal );
+                           int plateCols[], char plateValues[], char maskVal, string maskVer );
     void cleanRtable( struct RtableEntry *Rtable[] );
 
 
