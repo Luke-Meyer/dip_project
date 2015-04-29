@@ -19,32 +19,28 @@ bool MyApp::Menu_Extraction_CorrelationCoefficient( Image &image )
 {
     if ( image.IsNull() ) return false;     //checks if the image is valid
 
-        double timeElapse = 0;
-
-    Image copy(image);
-    iterativeBinaryThreshold( copy );
-
     //initalize an array to keep track of found numbers or letters
     int plateCols[7] = { 0 };
     char plateValues[7] = { ' ' };
-    
-        //start time
-        clock_t start = clock();
+    double timeElapse = 0;
+    Image copy(image);
+    iterativeBinaryThreshold( copy );
 
+    //start time
+    clock_t start = clock();
+    
     //call the extraction algorithm
     correlationExtraction( copy, plateValues, plateCols);
 
-        //end time
-        clock_t end = clock();
+    //end time
+    clock_t end = clock();
 
-        timeElapse = double(end - start) / CLOCKS_PER_SEC;
-        
-        //order the output according to col position
-        orderPlateValues( plateValues, plateCols, timeElapse );
-        
-    //display alpha-numeric sequence
-        //display time taken
-        return true;
+    timeElapse = double(end - start) / CLOCKS_PER_SEC;
+
+    //order the output according to col position
+    orderPlateValues( plateValues, plateCols, timeElapse );
+
+    return true;
 }
 
 /*************************************************************************

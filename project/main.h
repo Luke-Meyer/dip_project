@@ -30,9 +30,10 @@ class MyApp : public QObject
     void correlationExtraction( Image &image, char plateValues[], int plateCols[]);
     void houghExtraction( Image &image, char plaveValues[], int plateCols[] );
     void orderPlateValues( char plateValues[], int plateCols[], double timeElapse );
-    void buildRtable( struct RtableEntry *Rtable[], Image &magnitudeTemp, int threshold, int maskRows, int maskCols, int maskX[], int maskY[], int xReference, int yReference );
-    void buildAccumulator( int &colPos, int imageRows, int imageCols, Image &imageMagCopy, int threshold, int maskX[], int maskY[], struct RtableEntry *Rtable[], struct RtableEntry *curr, Image &accumulatorArray );
-    void cleanRtable( struct RtableEntry *Rtable[], struct RtableEntry *curr );
+    void buildRtable( struct RtableEntry *Rtable[], Image &magnitudeTemp, int maskRows, int maskCols, int xReference, int yReference, int &nodes );
+    void buildAccumulator( int imageRows, int imageCols, Image &imageMag, struct RtableEntry *Rtable[], int numDetected, int nodes, 
+                           int plateCols[], char plateValues[], char maskVal );
+    void cleanRtable( struct RtableEntry *Rtable[] );
 
 
   public slots:

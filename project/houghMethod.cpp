@@ -4,7 +4,7 @@
 #include <string>
 
 #define PI 3.1415926535 //Define the value of Pi
-
+#define THRESHOLD 250 // threshold needed for R-tabel computation( defines edge pixel )
 
 // structure for entry into R table
 struct RtableEntry
@@ -14,11 +14,19 @@ struct RtableEntry
   RtableEntry *next;
 };
 
-/*************Global Type Definitions*****************************************/
-//typedef RtableEntry *entry_ptr;
-
-/*****************************************************************************/
-
+/***************************************************************************************
+   Function:   Extraction - Hough Matching
+   
+   Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
+   
+   Description: this function will set up all elements required to
+                extract a sequence of alphanumeric characters from a
+                licence plate and call the functions
+                houghMathcing and orderPlateValues in order to 
+                find the desired sequence.
+                
+   Parameters: image[in/out] - Image to be matched using templates
+ ***************************************************************************************/
 bool MyApp::Menu_Extraction_HoughMatching( Image &image )
 {
     if ( image.IsNull() ) return false;     //checks if the image is valid
@@ -29,380 +37,420 @@ bool MyApp::Menu_Extraction_HoughMatching( Image &image )
     int plateCols[7] = { 0 };
     char plateValues[7] = { ' ' };
     
+    //start time
+    clock_t start = clock();
+    
     //call the extraction algorithm
     houghExtraction( image, plateValues, plateCols );
+    
+    //end time
+    clock_t end = clock();
+
+    timeElapse = double(end - start) / CLOCKS_PER_SEC;
         
     //order the output according to col position
     orderPlateValues( plateValues, plateCols, timeElapse );
 	
-    //display alpha-numeric sequence
-	//display time taken
 	return true;
 }
 
 
-
+/***************************************************************************************
+   Function:   Hough Matching
+   
+   Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
+   NOTE: This algorithm is interpreted from hough.pdf that Dr. Weiss posted on the web
+   
+   Description: creates an Rtable and accumulator array for the image and the templates.
+                This is followed by the actual extraction of the alpha-numeric sequence.
+                
+   Parameters: image[in/out]  - Image to be matched using templates
+               plateValues[in]- array of values we extract in the method
+               plateCols[in]  - array of col values that match where match is found
+ ***************************************************************************************/
 void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 {     
-    //This algorithm is interpreted from hough.pdf that Weiss posted on the web" 
-
     Image mask;  // mask object to hold template image
     int xReference = 0; // x coord of reference point in template
     int yReference = 0; // y coord of reference point in template
-    float count = 0.0; // used to compute reference point in mask 
- 
-    
-    RtableEntry *Rtable[360] = {}; // R table with a resolution of 360 degrees 
-   
-    for( int i = 0; i < 360; i++ )
-    {  Rtable[i] = new (nothrow) RtableEntry;
-       Rtable[i] -> next = NULL;
-       
-    }  
-    
-   // Rtable = new (nothrow) RtableEntry * [360]; 
-    
-   
-    int threshold = 230; // threshold needed for R-tabel computation( defines edge pixel )
-
-    int imageRows = image.Height(); // get dimensions of image
-    int imageCols = image.Width();
-
-    int **accumulatorArray = new (nothrow) int*[imageRows]; // accumulator array
-
-    for( int i = 0; i < imageRows; i++ )
-    {
-        accumulatorArray[i] = new int[imageCols];//[imageCols];
-        
-    }
-
-    for( int i = 0; i < imageRows; i++ ) //initialize accumulator array to zero
-    {
-      for( int j = 0; j < imageCols; j++ )
-      {
-        accumulatorArray[i][j] = 0;
-      }
-
-    }
-       
-
+    float count = 0.0; // used to compute reference point in mask
+    int nodes = 1;
     int numDetected = 0;
 
+    // get dimensions of image
+    int imageRows = image.Height(); 
+    int imageCols = image.Width();
+   
     
-    string CorImgLabel;
-    string maskVersion[] = { "-80", "-90", "-100", "-110", "-120" };
-    string maskValue[] = { "0", "2", "3", "4", "5", "6", "7", "8", "9", 
+        
+    // R table with a resolution of 360 degrees
+    RtableEntry *Rtable[360] = {0}; 
+    
+    string maskVersion[] = { "-100", "-90", "-80", "-110", "-120" };
+    string maskValue[] = { "2", "0", "3", "4", "5", "6", "7", "8", "9", 
 			               "A", "B", "C", "D", "E", "F", "G", "H", "J", 
 			               "K", "M", "N", "O", "P", "Q", "R", "S", "U",
 		            	   "V", "W", "X", "Y", "Z", "T", "L", "I", "1" };
-    for( int ML = 0; ML < 36; ML++ ) // for each of the 36 template images
-    {   
-     for( int MV = 0; MV < 5; MV++ )
-     {
-        //copy current image to write the correlated values to late 
-        Image XCorImg( image );
-        XCorImg.Fill( Pixel( 0, 0, 0 ) );
+    // for each of the 36 template masks	            	   
+    for( int maskLoop = 0; maskLoop < 36; maskLoop++ ) 
+    {
+        // for each of the 5 template images per template mask	            	   
+        for( int mvLoop = 0; mvLoop < 5; mvLoop++ )
+        {          
+            // read in template image from file
+            string name = "../images/templates/" + maskValue[maskLoop] + "/" + 
+                               maskValue[maskLoop] + maskVersion[mvLoop] + ".JPG";
+            Image mask( name ); //open the image file
 
-        CorImgLabel = "Mask = "; // get name of current mask
-  
-        // read in template image from file
-        string name = "../images/templates/" + maskValue[ML] + "/" + maskValue[ML] + maskVersion[MV] + ".JPG";
-        Image mask( name );
+            //check if template is valid, skips to next one if not found
+            if( mask.IsNull() )
+                continue;
 
-        //check for template data
-        if( mask.IsNull() )
-            continue;  // skip to next template if current one is not found
+            //Prints to the console what mask is being processed
+            cout << "Running Mask: " << maskValue[maskLoop] + maskVersion[mvLoop] << endl;
 
-        //Prints to the console what mask is being processed
-         cout << "Running Mask: " << maskValue[ML] + maskVersion[MV] << endl;
+            // get mask dimensions
+            int maskRows = mask.Height();  
+            int maskCols = mask.Width();
 
-    
-        int maskRows = mask.Height();  // get mask dimensions
-        int maskCols = mask.Width();
+            //duplicates the mask to apply sobel magnitude to later
+            Image magnitudeTemp( mask );
+           
+            //COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN TEMPLATE IMAGE //
+            sobelMagnitude( magnitudeTemp );
+            
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////      
+            //DETERMINE CENTRIOD OF TEMPLATE IMAGE // 
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+            for( int y = 0; y < maskRows; y++ ) 
+            {
+                for( int x = 0; x < maskCols; x++ )
+                {
+                    if( magnitudeTemp[y][x] > THRESHOLD )
+                    {
+                      xReference += x;
+                      yReference += y;
+                      count += 1.0;
+                    }      
+                }
+            }
+            
+            // finish computing the centroid point
+            xReference /= count;  
+            yReference /= count;
+            
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+            // BUILD RTABLE //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+            buildRtable( Rtable, magnitudeTemp, maskRows, maskCols, xReference, yReference, nodes );
+            
+            // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN IMAGE //
+            Image imageMag( image ); // make copy of image to ensure data integrity
+            sobelMagnitude( imageMag ); // apply sobel edge magnitude operation to image copy
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////    
+            // BUILD ACCUMULATOR ARRAY //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            char maskVal = maskValue[maskLoop][0]; // captures the char value of the template sequence
+            buildAccumulator( imageRows, imageCols, imageMag, Rtable, numDetected, nodes, plateCols, plateValues, maskVal );
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
+            // DELETE RTABLE //
+/////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+            cleanRtable( Rtable );
+
+            //cout << plateValues[0] << endl;
+
+        }// end version
+
+    }// end templates
+
+}// end function
+
+
+
+/***************************************************************************************
+   Function:   Clean Rtable
    
-        
-    //DETERMINE CENTRIOD OF TEMPLATE IMAGE //
-        
-        for( int x = 0; x < maskRows; x++ ) 
-        {
-          for( int y = 0; y < maskCols; y++ )
-          {
-            if( mask[x][y] > threshold )
-            {
-              xReference += x;
-              yReference += y;
-              count += 1.0;
-            }      
-          }
-        }
-         
-        xReference /= count;  // finish computing the centroid point
-        yReference /= count;
-
+   Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
+   
+   Description: this function is used to clean up the memory allocated for the Rtable.
+                
+   Parameters: Rtable[in] - array of values that stores accumulator values
+ ***************************************************************************************/
+void MyApp::cleanRtable( struct RtableEntry *Rtable[] )
+{
+    RtableEntry *curr = NULL;
     
-        //COMPUTE R-TABLE //
-       
-        float radius = 0.0; // radius length from reference point to boundary 
-        float alpha = 0.0; // orienation of boundary point relative to centroid
-        float theta = 0.0; // angle between x axis and radius of centroid to boundary
-        //create filter mask matrix
-        //These are seperable, but using a 3x3 matrix
-       // int maskX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
-        //int maskY[9] = {1, 2, 1, 0, 0, 0, -1, -2, -1};
-       // float sumX = 0;
-        //float sumY = 0;
-        //int i = 0;  // loop variable to index sobel masks
-
-        Image magnitudeCopy( mask );
-        Image directionCopy( mask );
-
-        // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN TEMPLATE IMAGE //
-        sobelMagnitude( magnitudeCopy );  
-        //compute gradient direction for each pixel in template image
-        sobelDirection( directionCopy );
-        
-
-         //Build R-table
-        for( int r = 0; r < maskRows; r++ )
-        {
-          for( int c = 0; c < maskCols; c++ )
-          {
-            if( magnitudeCopy[r][c] > threshold )
-            {                               
-              theta = directionCopy[r][c]; // calculate theta
-
-              //convert theta from radians to degrees
-              //theta = ( theta * 180 / PI  );
-              
-              cout << "theta " << theta << endl;;
-                                  
-                             //compute radius from centroid to boundary point
-              radius = sqrt( ( ( xReference - r ) * ( xReference - r ) ) +       
-                             ( ( yReference - c ) * ( yReference - c ) ) );
- 
-               //compute orientation of boundary point relative to centroid
-              alpha = atan2( ( (double)  yReference - c ) , ( (double)  xReference - r ) );
- 
-              //convert alpha from radians to degrees
-              alpha = ( alpha * 180 / PI  );
-    
-              if( alpha < 0 ) // make alpha positive if it is negative
-                alpha += 360;
-              else if( alpha > 360 ) // fit alpha in range 0 - 359 if too large
-                alpha = alpha - 360;
-              alpha = (int) ( alpha + .5 )%180; // fit alpha into 0 - 179 range
-              //if( alpha > 90.0 && alpha < 180.0 )
-                //alpha = alpha + 180.0; // set alpha
- 
-                
-               // insert ( alpha, radius) pair into R table using theta as an index
-             //  cout << "JUST OUTSIDE" << endl;
-               if( Rtable[ (int) ( theta + .5 ) ] -> next == NULL ) 
-               {                 
-               //  cout << "MADE IT INSIDE" << endl;
-                 
-                 RtableEntry *temp = new (nothrow) RtableEntry;
-                 temp -> radius = radius;
-                 temp -> alpha = alpha;
-                 temp -> next = NULL;
-                // cout << "ALLOCATED TEMP NODE" << endl;
-                
-                 /*Rtable[ ( int ) theta ]->radius = radius; // FIll R Table
-                 cout << "First radius " << Rtable[(int)theta]->radius << endl;
-                 Rtable[ ( int ) theta ]->alpha = alpha;
-                 cout << "First alpha " << Rtable[(int)theta]->alpha << endl;
-                  Rtable[ ( int ) theta ]->count += 1;
-                  */
-                  Rtable[ (int) (theta+.5) ] -> next = temp;
-               }
-              
-              // if there is one other (alpha,radius) pair for this theta
-              else 
-               {
-                cout << "NOT THE FIRST PAIR FOR GIVEN THETA" << endl;
-                RtableEntry * temp = new (nothrow) RtableEntry  ;  // instantiate a temp entry for insertion into Rtable
-
-                
-                 //fill temp entry
-                temp -> radius = radius;
-                temp -> alpha = alpha;
-                
-
-                //RtableEntry *curr;
-                
-                temp -> next = Rtable[ (int) (theta+.5) ] -> next;
-                Rtable[ (int) (theta+.5)] -> next = temp;
-                
-                
-                cout << "temp data " << temp -> radius << " " << temp -> alpha << " "<< endl;
-                   
-
-                }
-
-                            
-              }
-            }
-
-          }
-
-              cout << "BUILT R TABLE" << endl;     
- 
-        
-        // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN IMAGE //
-
-        Image imageMagCopy = image; // make copy of image to ensure data integrity
-        Image imageDirCopy = image;
-
-        sobelMagnitude( imageMagCopy ); // apply sobel edge magnitude operation to image copy
-        sobelDirection( imageDirCopy ); //apply sobel edge direction operation to image copy
-    
-        float xCoord = 0.0; // x coordinate to index accumulator array
-        float yCoord = 0.0; // y coordinate to index accumulator array
-        
-    
-        // BUILD ACCUMULATOR ARRAY //
-
-        for( int r = 0; r < imageRows; r++ )
-        {
-          for( int c = 0; c < imageCols; c++ )
-          {
-            if( imageMagCopy[r][c] > threshold )  // if pixel is an edge pixel
-            {
-              cout << "Building accumulator array" << endl;
-              theta = imageDirCopy[r][c];
-              cout << "theta " << theta << endl;
-
-              //if( theta < 0 )  // convert to positive radians if theta is negative
-               // theta = ( theta + 2 * PI );                                  
-               
-              RtableEntry *curr; 
-
-              curr = Rtable [ (int) ( theta +.5) ]; // set interator to proper theta index in R table
-
-              cout << "before incrementation" << endl;         
-              // while pointing at an entry with a particular theta value
-              while( curr != NULL )  
-             {   //calculate the x and y coordinates for the position in the accumulator array to be incremented 
-                 // NOTE: Convert alpha to radians as cos and sin funcs expect radians for parameters              
-                 float alphaCos = ( cos( curr -> alpha * PI/180 ) );
-                // if( alphaCos < 0.0 ) // if cos value is negative, make it positive
-                    //alphaCos *= -1.0;
-
-                 float alphaSin = ( sin( curr -> alpha * PI/180 ) );
-                // if( alphaSin < 0.0 ) //if sin value is negatvie, make it positive
-                    //alphaSin *= -1.0;
-
-                 xCoord = ( r +  curr ->radius  * alphaCos  );  
-
-                 yCoord = ( c + curr->radius * alphaSin );
-         
-                 cout << "current radius " << curr -> radius << "current alpha " << curr -> alpha << endl;
-                 cout << "current row in image " << r << "current col in image " << c << endl;
-                 cout << "xCoord " << xCoord << "yCoord " << yCoord << endl;
-              
-                 cout << "GOING TO INCREMENT ACCUMULATOR " << endl;
-
- //////////////////SEGFAULTS HERE EVENTUALLY//////////////////////////////////////////
-                 accumulatorArray[ (int) (xCoord+.5)][(int) (yCoord+.5)] += 1; 
-                 
-                // cout << accumulatorArray[190][103] << endl;
-                
-                 cout <<"Tally for spot at xy coords " <<  accumulatorArray[(int) (xCoord+.5)][(int)(yCoord+.5)] << endl;
-                 cout << "theta " << theta << endl;
-                 cout << "mask: " << name << endl;
-                 
-                 curr = curr -> next; //move down to the next pair of ( alpha, radius )
-                 
-                              
-                }
-
-             }
-          }
-        }
-        cout << "BUILT ACCUMULATOR ARRAY" << endl;
-        int max = 0; // maximum value in accumulator array
-
-        int colPos = 0; // column position of possible match in image
-
-        
-
-    //Possible locatoins for the shape are given by maxima in accumulator array
-     // search for maxima in accumulator array
-        for( int r = 0; r < imageRows; r++ )
-        {
-          for( int c = 0; c < imageCols; c++ )
-          {
-            if( accumulatorArray[r][c] > max ) // get max value in accumulator;
-            {
-              max = accumulatorArray[r][c];
-              colPos = c;
-            }
-                
-          }
-        }
-
-         if ( numDetected == 0 )
-         {
-            plateCols[numDetected] = colPos;
-            plateValues[numDetected] = maskValue[ML][0];
-            numDetected = 1;
-	 }   
-	 else //save the matches in the array
-	 {
-            //checks if the template match is within 75 pixels, to eliminate redundant matches
-            if ( abs( colPos - plateCols[numDetected-1] ) > 75 )
-	    {   
-		 plateCols[numDetected] = colPos; // save column locaction of possible match
-	         plateValues[numDetected] = maskValue[ML][0]; // save mask character processed
-                 numDetected = numDetected + 1; // increment the number of found characters
-	    }
-	  }
-        cout << "Made it here LDLDLD" << endl;
-          //exits the processing of the plate image if 7 characters are already found
-     if( numDetected >= 7 )
-       return;
-
-     //displays the hough correlation in a new image for each mask
-     CorImgLabel += maskValue[ML];
-     displayImage(XCorImg, CorImgLabel);
-               
-
-    // maybe do  more stuff with column position of possible object match
-    //
-
-    // delete R table
-     for( int x = 0; x < 360; x++ )
+    for( int x = 0; x < 360; x++ )
     {
-      RtableEntry * curr;
-
-
-      while( Rtable[x] != NULL )
-      {
-        curr = Rtable[x];
-
-        Rtable[x] = Rtable[x] -> next;
-
-        delete []curr;
-    
-
-      }
-      
-    }
-
-    //delete accumulator array
-    for( int i = 0; i < imageRows; ++i )
-    {
-       delete [] accumulatorArray[i]; 
-
-    }
-    delete []accumulatorArray;
- 
- 
-                   
-   }
-
-  }
+        while( Rtable[x] != NULL )
+        {
+            curr = Rtable[x];
+            Rtable[x] = Rtable[x] -> next;
+            delete curr;
+        }// end while Rtable[x] != NULL 
+    }// end for x = 0 to 360, degree fills 
 }
 
+/***************************************************************************************
+   Function:   Clean Rtable
+   
+   Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
+   
+   Description: this function is used to clean up the memory allocated for the Rtable.
+                
+   Parameters: Rtable[in] - array of values that stores accumulator values
+               magnitudeTemp[in] - pointer to index the Rtable structure
+               maskRows[in]      - height of the mask
+               maskCols[in]      - width of the mask
+               xReference[in]    - centroid x value
+               yReference[in]    - centroid y value
+ ***************************************************************************************/
+void MyApp::buildRtable( struct RtableEntry *Rtable[], Image &magnitudeTemp, int maskRows, int maskCols, int xReference, int yReference, int &nodes )
+{
+    //create Sobel edge filter
+    //These are seperable, but using a 3x3 matrix
+    int maskX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
+    int maskY[9] = {1, 2, 1, 0, 0, 0, -1, -2, -1};
+    
+    for( int r = 1; r < maskRows - 1; r++ )
+    {
+        for( int c = 1; c < maskCols - 1; c++ )
+        {
+            float theta = 0.0; // angle between x axis and radius of centroid to boundary
+            float sumX = 0.0;
+            float sumY = 0.0;
+            float radius = 0.0; // radius length from reference point to boundary 
+            float alpha = 0.0; // orienation of boundary point relative to centroid
+            int z = 0; // initialize important variables for calculation
+            sumX = 0.0;
+            sumY = 0.0;
+            int rbound = r - 1;
+            int cbound = c - 1;
+            nodes = 1;
+            
+            if( magnitudeTemp[r][c] > THRESHOLD )
+            {  
+                //calculate theta for this edge pixel
+                for( int i = r-1; i < (3+rbound); i++ )
+                {
+                    for( int j = c-1; j < (3+cbound); j++ )
+                    {
+                        sumX += maskX[z] * magnitudeTemp[i][j];
+                        sumY += maskY[z] * magnitudeTemp[i][j];
+                        z++;
+                    }
+                }               
+                theta = atan2( (double) sumY, (double) sumX ); // calculate theta
+                theta = (theta * 180) / PI; // convert from radians to degrees
+
+                if( theta < 0 ) // if theta is negative, put into positive 0 - 360 range
+                    theta += 360;
+                else if( theta > 360 )// if, somehow, theta is too large, put into 0 - 360 range
+                    theta = theta - 360; 
+
+                //compute radius from centroid to boundary point
+                radius = sqrt( ( ( xReference - c ) * ( xReference - c ) ) +       
+                               ( ( yReference - r ) * ( yReference - r ) ) );
+
+                //compute orientation of boundary point relative to centroid
+                alpha = atan2( ( (double)  yReference - r ) , ( (double)  xReference - c ) );
+
+                //convert alpha from radians to degrees
+                alpha = ( alpha * 180.0 / PI  );
+
+                if( alpha < 0.0 ) // make alpha positive if it is negative
+                    alpha += 360.0;
+                else if( alpha > 360 ) // fit alpha in range 0 - 359 if too large
+                    alpha = alpha - 360;
+
+           
+                RtableEntry *temp = new (nothrow) RtableEntry;
+                temp -> radius = radius;
+                temp -> alpha = alpha;
+                temp -> next =  Rtable[ (int) (theta+.5) ] ;
+                Rtable[ (int) (theta+.5) ] = temp;
+
+                nodes += 1;
+            } // end threshold magnitude
+
+        } // end template columns
+
+    } // end template rows
+}
+
+/***************************************************************************************
+   Function:   Clean Rtable
+   
+   Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
+   
+   Description: this function is used to clean up the memory allocated for the Rtable.
+                
+   Parameters: 
+               imageRows[in]    - height of the image
+               imageCols[in]    - width of the image
+               imageMag[in/out] - the image after a sobel magnitude is applied
+               Rtable[in]       - array of values that stores accumulator values
+ ***************************************************************************************/
+void MyApp::buildAccumulator( int imageRows, int imageCols, Image &imageMag, struct RtableEntry *Rtable[], int numDetected, int nodes, 
+                              int plateCols[], char plateValues[], char maskVal )
+{
+    //create Sobel edge filter
+    //These are seperable, but using a 3x3 matrix
+    int maskX[9] = {-1, 0, 1, -2, 0, 2, -1, 0, 1};
+    int maskY[9] = {1, 2, 1, 0, 0, 0, -1, -2, -1};
+    RtableEntry *curr = NULL;
+    Image accumImage( imageRows, imageCols );
+    accumImage.Fill(Pixel(0,0,0)); //reset and reuse the accumulator array display image 
+    string CorImgLabel;
+    CorImgLabel = "Mask = ";  // get name of current mask
+
+    //make accumulator array rows
+    int **accumulatorArray = new (nothrow) int*[imageRows]; 
+    
+    //make accumulator array cols
+    for( int i = 0; i < imageRows; ++i )
+    {   
+        accumulatorArray[i] = new int[imageCols];
+    }
+
+    //initialize accumulator array to zero
+    for( int i = 0; i < imageRows; i++ ) 
+    {
+        for( int j = 0; j < imageCols; j++ )
+        {
+            accumulatorArray[i][j] = 0;
+        }
+
+    } 
+    
+    int colPos = 0;
+    int max = 0;
+    float sumX = 0.0;
+    float sumY = 0.0;
+    float theta = 0.0; // angle between x axis and radius of centroid to boundary
+    float xCoord = 0.0; // x coordinate to index accumulator array
+    float yCoord = 0.0; // y coordinate to index accumulator array
+
+    for( int r = 1; r < imageRows - 1; r++ )
+    {
+        for( int c = 1; c < imageCols - 1; c++ )
+        {      
+            if( imageMag[r][c] > THRESHOLD )  // if pixel is an edge pixel
+            {
+                sumX = 0.0;
+                sumY = 0.0;
+                int z = 0;
+                int rbound = r -1;
+                int cbound = c-1;
+                //  cout << "Building accumulator array" << endl;
+
+                //Calculate theta for current edge pixel
+                for( int i = r-1; i < ( 3+rbound ) ; i++ )
+                {
+                    for( int j = c-1; j < ( 3+cbound ); j++ )
+                    {
+                        sumX += maskX[z] * imageMag[i][j];
+                        sumY += maskY[z] * imageMag[i][j];
+                        z++;
+                    }
+                }               
+                theta = atan2( (double) sumY, (double) sumX ); // calculate theta
+                theta = (theta * 180) / PI; // convert from radians to degrees
+
+                if( theta < 0 ) // if theta is negative, put into positive 0 - 360 range
+                    theta += 360;
+                else if( theta > 360 )// if, somehow, theta is too large, put into 0 - 360 range
+                    theta = theta - 360; 
+                               
+                // set interator to proper theta index in R table
+                curr = Rtable [ (int) ( theta +.5) ]; 
+                
+                // cout << "before incrementation" << endl;         
+                // while pointing at an entry with a particular theta value
+                while( curr != NULL )  
+                {   
+                    cout << "loop" << endl;
+                    //calculate the x and y coordinates for the position in the accumulator array to be incremented 
+                    // NOTE: Convert alpha to radians as cos and sin funcs expect radians for parameters              
+                    float alphaCos = ( cos( curr->alpha * PI / 180 ) );
+                    float alphaSin = ( sin( curr->alpha * PI / 180 ) );
+
+                    xCoord = ( c +  curr->radius * alphaSin );  
+                    yCoord = ( r +  curr->radius * alphaCos );                   
+
+                    int neighborBoundY = yCoord + .5;
+                    int neighborBoundX = xCoord + .5;  
+                    
+                    //INCREMENT ACCUMULATOR ARRAY IN 3X3 NEIGHBORHOOD
+                    for(int i = (neighborBoundY - 2); i < (neighborBoundY + 3); i++)
+                    {
+                        for(int j = (neighborBoundX - 2); j < (neighborBoundX + 3); j++)
+                        {
+                            // if the calculated x and y coordinates are legal, increment accumulator array
+                            if( i >= 0 && i <= (imageRows - 2) && j >= 0 && j <= (imageCols - 2) )
+                            {
+                                accumulatorArray[i][j] = accumulatorArray[i][j] + 1; 
+                            }
+                        }
+                    }
+                    //move down to the next pair of ( alpha, radius )
+                    curr = curr -> next; 
+                                              
+                } //endwhile
+
+            } //end if mag threshold
+
+        } //end Mag image cols
+
+    } //end mag image rows
+
+    // search for maxima in accumulator array
+    for( int r = 0; r < imageRows; r++ )
+    {
+        for( int c = 0; c < imageCols; c++ )
+        {
+            //normalizes the hits found and sets it to the display image
+            accumImage[r][c] = ((accumulatorArray[r][c] / nodes) * 255);
+            
+            //finds max value in accumulator;
+            if( accumulatorArray[r][c] > max )
+            {
+                max = accumulatorArray[r][c];
+                colPos = c;              
+            } 
+        }
+    }
+    
+    //save the found matches in the array
+    if ( numDetected == 0 )
+    {
+        plateCols[numDetected] = colPos;
+        plateValues[numDetected] = maskVal;
+    }   
+    else
+    {
+        //checks if the template match is within 75 pixels, to eliminate redundant matches
+        if ( abs( colPos - plateCols[numDetected-1] ) > 80 )
+        {   
+            plateCols[numDetected] = colPos;                    // save column locaction of possible match
+            plateValues[numDetected] = maskVal;  // save mask character processed
+            numDetected = numDetected + 1;                      // increment the number of found characters
+        }
+    }
+                
+    //exits the processing of the plate image if 7 characters are already found
+    if( numDetected >= 7 )
+        return;
+
+    //displays the hough correlation in a new image for each mask
+    CorImgLabel += maskVal;
+    histogramStretch( accumImage );
+    displayImage( accumImage, CorImgLabel );
+    
+    
+    cout << max << endl;
+}
 
 
