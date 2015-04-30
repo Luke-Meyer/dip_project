@@ -70,6 +70,8 @@ bool MyApp::Menu_Extraction_HoughMatching( Image &image )
  ***************************************************************************************/
 void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 {     
+    double plateRatio[7] = { 0 };
+    
     Image mask;  // mask object to hold template image
     int xReference = 0; // x coord of reference point in template
     int yReference = 0; // y coord of reference point in template
@@ -79,8 +81,6 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
     // get dimensions of image
     int imageRows = image.Height(); 
     int imageCols = image.Width();
-   
-    
         
     // R table with a resolution of 360 degrees
     RtableEntry *Rtable[360] = {0}; 
@@ -144,8 +144,10 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////    
             buildRtable( Rtable, magnitudeTemp, maskRows, maskCols, xReference, yReference, nodes );
             
-            //DEBUG//
-            for(int i = 0; i < 360; i++)
+            //----DEBUG----//
+            //WALKS THROUGH THE RTABLE BUILD AND PRINTS THE THETA INDEX, TEMP->NEXT 
+            //AND 1'S TO DENOTE THE AMOUNT OF NODES INDEXED TO THAT THETA
+            /*for(int i = 0; i < 360; i++)
             {
                 cout << i << " = " << Rtable[i] << "      ";
                 if(Rtable[i] != NULL)
@@ -161,7 +163,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
                     cout << endl;
                 }
                 cout << endl;
-            }          
+            }*/          
             
             // COMPUTE GRADIENT MAGNITUDE FOR EACH PIXEL IN IMAGE //
             Image imageMag( image ); // make copy of image to ensure data integrity
@@ -172,7 +174,7 @@ void MyApp::houghExtraction( Image &image, char plateValues[], int plateCols[] )
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
             char maskVal = maskValue[maskLoop][0]; // captures the char value of the template sequence
             string maskVer = maskVersion[mvLoop];
-            buildAccumulator( imageRows, imageCols, imageMag, Rtable, numDetected, nodes, plateCols, plateValues, maskVal, maskVer );
+            buildAccumulator( plateRatio, plateValues, plateCols, imageRows, imageCols, imageMag, Rtable, nodes, maskVal, maskVer, numDetected );
 
 /////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////  
             // DELETE RTABLE //
@@ -207,8 +209,8 @@ void MyApp::cleanRtable( struct RtableEntry *Rtable[] )
             curr = Rtable[x];
             Rtable[x] = Rtable[x] -> next;
             delete curr;
-        }// end while Rtable[x] != NULL 
-    }// end for x = 0 to 360, degree fills 
+        } 
+    }
 }
 
 /***************************************************************************************
@@ -224,7 +226,7 @@ void MyApp::cleanRtable( struct RtableEntry *Rtable[] )
                maskCols[in]      - width of the mask
                xReference[in]    - centroid x value
                yReference[in]    - centroid y value
-               nodes
+               nodes[in/out]     - number of nodes created in Rtable for a mask
  ***************************************************************************************/
 void MyApp::buildRtable( struct RtableEntry *Rtable[], Image &magnitudeTemp, int maskRows, int maskCols, int xReference, int yReference, int &nodes )
 {
@@ -312,22 +314,21 @@ void MyApp::buildRtable( struct RtableEntry *Rtable[], Image &magnitudeTemp, int
    
    Author: Lauren Keene, Kayhan Karatekeli, Luke Meyer
    
-   Description: this function is used to build the accumulator array and print 
+   Description: this function is used to build the accumulator array and prints
                 the results to screen.
                 
    Parameters: 
-               imageRows[in]    - height of the image
-               imageCols[in]    - width of the image
-               imageMag[in/out] - the image after a sobel magnitude is applied
-               Rtable[in]       - array of values that stores accumulator values
-               numDetected
-               nodes
-               plateCols
-               plateValues
-               maskVal
+               imageRows[in]     - height of the image
+               imageCols[in]     - width of the image
+               imageMag[in/out]  - the image after a sobel magnitude is applied
+               Rtable[in]        - array of values that stores accumulator values
+               nodes[in]         - number of nodes created in Rtable for a mask
+               plateCols[in/out] - array to hold the column number of a found value
+               plateValues[in/out] - array to hold the char found
+               maskVal[in]       - actual value of the mask char
+               maskVer[in]       - current mask version being run
  ***************************************************************************************/
-void MyApp::buildAccumulator( int imageRows, int imageCols, Image &imageMag, struct RtableEntry *Rtable[], int numDetected, int nodes, 
-                              int plateCols[], char plateValues[], char maskVal, string maskVer )
+void MyApp::buildAccumulator( double plateRatio[], char plateValues[], int plateCols[], int imageRows, int imageCols, Image &imageMag, struct RtableEntry *Rtable[], int nodes, char maskVal, string maskVer, int &numDetected )
 {
     //create Sobel edge filter
     //These are seperable, but using a 3x3 matrix
@@ -338,8 +339,14 @@ void MyApp::buildAccumulator( int imageRows, int imageCols, Image &imageMag, str
     accumImage.Fill(Pixel(0,0,0));
     string CorImgLabel = "Mask = ";  // get name of current mask
 
+    //saves the column position of the highest version match
+    int colPos = 0;
+
     //make accumulator array rows
     int **accumulatorArray = new (nothrow) int*[imageRows]; 
+    
+    bool replace = false;
+    bool PlateUsed = false;
     
     //make accumulator array cols
     for( int i = 0; i < imageRows; ++i )
@@ -356,8 +363,7 @@ void MyApp::buildAccumulator( int imageRows, int imageCols, Image &imageMag, str
         }
 
     } 
-    
-    int colPos = 0;
+
     int max = 0;
     float sumX = 0.0;
     float sumY = 0.0;
@@ -422,13 +428,13 @@ void MyApp::buildAccumulator( int imageRows, int imageCols, Image &imageMag, str
                     int neighborBoundY = yCoord + .5;
                     int neighborBoundX = xCoord + .5;  
                     
-                    //INCREMENT ACCUMULATOR ARRAY IN 7X7 NEIGHBORHOOD
-                    for(int i = (neighborBoundY - 4); i < (neighborBoundY + 4); i++)
+                    //INCREMENT ACCUMULATOR ARRAY IN 9X9 NEIGHBORHOOD TO ADD WEIGHT
+                    for(int i = (neighborBoundY - 5); i <= (neighborBoundY + 5); i++)
                     {
-                        for(int j = (neighborBoundX - 4); j < (neighborBoundX + 4); j++)
+                        for(int j = (neighborBoundX - 5); j <= (neighborBoundX + 5); j++)
                         {
                             // if the calculated x and y coordinates are legal, increment accumulator array
-                            if( i >= 0 && i <= (imageRows - 4) && j >= 0 && j <= (imageCols - 4) )
+                            if( i >= 0 && i <= (imageRows - 5) && j >= 0 && j <= (imageCols - 5) )
                             {
                                 accumulatorArray[i][j] = accumulatorArray[i][j] + 1; 
                             }
@@ -456,38 +462,61 @@ void MyApp::buildAccumulator( int imageRows, int imageCols, Image &imageMag, str
             //finds max value in accumulator;
             if( accumulatorArray[r][c] > max )
             {
-                max = accumulatorArray[r][c];
-                colPos = c;    
+                max = accumulatorArray[r][c];    
+                colPos = c;       //saves the column where the value was found
             }
-             
         }
     }
     
-    //save the found matches in the array
-    if ( numDetected == 0 )
+    max = max / nodes;
+    
+    
+    //the value to compare max to is arbitrary, this is our test zone below to find the extraction value
+    if( max > .65 )
     {
-        plateCols[numDetected] = colPos;
-        plateValues[numDetected] = maskVal;
-    }   
-    else
-    {
-        //checks if the template match is within 75 pixels, to eliminate redundant matches
-        if ( abs( colPos - plateCols[numDetected-1] ) > 80 )
-        {   
-            plateCols[numDetected] = colPos;                    // save column locaction of possible match
-            plateValues[numDetected] = maskVal;  // save mask character processed
-            numDetected = numDetected + 1;                      // increment the number of found characters
+        cout << numDetected << endl;
+        PlateUsed = true;
+        
+        if(numDetected != 0)
+        {
+            for(int i = 0; i < numDetected; i++)
+            {
+                if( abs( colPos - plateCols[i] ) < 60 )
+                {
+                    if ( max > plateRatio[i] )
+                    {
+                        plateCols[i] = colPos;
+                        plateRatio[i] = max;
+                        plateValues[i] = maskVal;
+                    }
+                    replace = true;
+                }
+            }
+            if (!replace && numDetected < 7)
+            {
+                plateCols[numDetected] = colPos;
+                plateRatio[numDetected] = max;
+                plateValues[numDetected] = maskVal;
+                numDetected += 1;    
+            }
+        }
+        else
+        {
+            plateCols[0] = colPos;
+            plateRatio[0] = max;
+            plateValues[0] = maskVal;
+            numDetected = 1;
         }
     }
-                
-    //exits the processing of the plate image if 7 characters are already found
-    if( numDetected >= 7 )
-        return;
-
-    //displays the hough correlation in a new image for each mask
-    CorImgLabel = CorImgLabel+ maskVal + maskVer;
-    histogramStretch( accumImage );
-    displayImage( accumImage, CorImgLabel );
+    
+    
+    if(PlateUsed)
+    {
+        //displays the hough correlation in a new image for each mask
+        CorImgLabel = CorImgLabel+ maskVal + maskVer;
+        histogramStretch( accumImage );
+        displayImage( accumImage, CorImgLabel );
+    }
 }
 
 

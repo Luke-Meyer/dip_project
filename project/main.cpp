@@ -36,7 +36,12 @@
                by "make". To clean the project, type on
                the command line "make clean".          
                
-   Usage:      To run this application after following the above compiling
+   Usage:      First, make sure the images folder and the project folder
+               are both in a common directory. If this is not the case,
+               change the path to the images in the correlationMethod.cpp
+               and the houghMethod.cpp files.
+   
+               To run this application after following the above compiling
                instructions, type "./main" from the command line to start the
                program. Here you can open an image, then choose either the 
                correlation method or hough method from the extraction menu.
@@ -51,6 +56,12 @@
                conditions.
           
    Known bugs/missing features:
+                We hit a wall trying to extract the appropriate sequence from
+                the Hough Method. The issue is that it is easy to find the max
+                spot in an accumulator array for one template in one image.
+                We had trouble finding the right criterion to find a cut off
+                to select the correct value. Therefore our sequence output is
+                wrong, but only for the hough   
    
    Modifications: We use the overall structure is an adaptation of Dr.
                   Weiss's QTImageLib program. We use this structure to 

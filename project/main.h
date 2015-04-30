@@ -31,8 +31,7 @@ class MyApp : public QObject
     void houghExtraction( Image &image, char plaveValues[], int plateCols[] );
     void orderPlateValues( char plateValues[], int plateCols[], double timeElapse );
     void buildRtable( struct RtableEntry *Rtable[], Image &magnitudeTemp, int maskRows, int maskCols, int xReference, int yReference, int &nodes );
-    void buildAccumulator( int imageRows, int imageCols, Image &imageMag, struct RtableEntry *Rtable[], int numDetected, int nodes, 
-                           int plateCols[], char plateValues[], char maskVal, string maskVer );
+    void buildAccumulator( double plateRatio[], char plateValues[], int plateCols[], int imageRows, int imageCols, Image &imageMag, struct RtableEntry *Rtable[], int nodes, char maskVal, string maskVer, int &numDetected );
     void cleanRtable( struct RtableEntry *Rtable[] );
 
 
